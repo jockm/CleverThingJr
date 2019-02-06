@@ -1,0 +1,6 @@
+data/mmc.cpp.i
+data/pff.cpp.i
+data/integer.h.i
+data/mmcPinConfig.h.i
+data/pff.h.i
+data/diskio.h.i
