@@ -10,7 +10,10 @@ C_SOURCE_FILES += ds1307.c
 C_SOURCE_FILES += ILI9163C.c
 C_SOURCE_FILES += mmc.c
 C_SOURCE_FILES += pff.c
+C_SOURCE_FILES += tinyscript.c
 
+
+# nRF51 SDK source
 C_SOURCE_FILES += ble_srv_common.c
 
 C_SOURCE_FILES += ble_advdata.c

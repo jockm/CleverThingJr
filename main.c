@@ -57,6 +57,7 @@
 #include "ds1307.h"
 #include "ILI9163C.h"
 #include "libpff/pff.h"
+#include "tinyscript.h"
 
 #define uartPrint(s)                    simple_uart_putstring((const uint8_t *) s);
 
@@ -161,6 +162,8 @@ static dm_application_instance_t        m_app_handle;                           
 static dm_handle_t                      m_peer_handle;                                       /**< Identifes the peer that is currently connected. */
 
 static app_timer_id_t                   scriptTimerId;
+
+static uint8_t tinyscriptArena[2048];
 
 /**@brief Function for error handling, which is called when an error has occurred. 
  *
@@ -878,6 +881,11 @@ void UART0_IRQHandler(void)
 }
 
 
+int inchar(void) {}
+void outchar(int c) {
+	simple_uart_put(c);
+}
+
 /**@brief Function for application main entry.
  */
 int main(void)
@@ -983,21 +991,25 @@ int main(void)
 	nrf_gpio_cfg_input(10, NRF_GPIO_PIN_NOPULL);
 
 	app_button_enable();
+
 	timers_start();
+
+	TinyScript_Init(tinyscriptArena, sizeof(tinyscriptArena));
+	TinyScript_Run("print \"Hello TinyScript\"", false, true);
 
     // Enter main loop.
     for (;;)
     {
-    	bool foo;
-
-    	app_button_is_pushed(8, &foo);
-
-		uartPrint("Duck button 8 ");
-		uartPrint((foo ? "H" : "L"));
-
-    	app_button_is_pushed(10, &foo);
-		uartPrint((foo ? "H" : "L"));
-    	uartPrint("\r\n");
+//    	bool foo;
+//
+//    	app_button_is_pushed(8, &foo);
+//
+//		uartPrint("Duck button 8 ");
+//		uartPrint((foo ? "H" : "L"));
+//
+//    	app_button_is_pushed(10, &foo);
+//		uartPrint((foo ? "H" : "L"));
+//    	uartPrint("\r\n");
 
         power_manage();
     }
