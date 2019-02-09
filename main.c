@@ -115,6 +115,13 @@
 
 #define DEAD_BEEF                       0xDEADBEEF                                           /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 
+#define PSTORAGE_BLOCKSIZE              256
+#define PSTORAGE_BLOCKCOUNT             64
+
+#define BUTTON_A_PIN					10
+#define BUTTON_B_PIN					8
+
+
 typedef enum
 {
     BLE_NO_ADVERTISING,                                                                      /**< No advertising running. */
@@ -163,7 +170,20 @@ static dm_handle_t                      m_peer_handle;                          
 
 static app_timer_id_t                   scriptTimerId;
 
+static pstorage_handle_t       pstorageHandle;
+volatile static bool  pstorageBusy;
+
+
 static uint8_t tinyscriptArena[2048];
+
+
+static const uint8_t lorem[] = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ligula odio, aliquam eget sollicitudin vel, semper vitae lacus. Duis sed blandit lorem. In hac habitasse platea dictumst. Nulla lobortis convallis egestas. Nullam ut lacus dictum, finibus massa finibus, scelerisque nunc. Aliquam non erat sollicitudin, imperdiet lorem a, auctor libero. Nam arcu nibh, rutrum et dignissim nec, sodales nec odio. Vestibulum nec odio sollicitudin lorem interdum placerat ac et nulla.\r\n"
+		"\r\n"
+		"Praesent tempor nunc ut auctor porta. Suspendisse vel dolor vel elit interdum imperdiet. Praesent laoreet porttitor porttitor. Nam pellentesque hendrerit lacus a elementum. Praesent sed bibendum est. In sed faucibus ante, a facilisis ex. Pellentesque nec ipsum quis magna congue ultricies sed nec arcu. Donec eget lacus volutpat, molestie odio vel, efficitur ipsum. Nulla egestas ligula a iaculis hendrerit. Etiam finibus ut lacus eget dapibus. Donec tempor porta nisl, a suscipit leo scelerisque vel. Suspendisse commodo erat eget nibh condimentum, dapibus commodo ante tempus. Morbi sollicitudin sem a diam varius, sed porta est ullamcorper. Donec viverra sem vitae justo varius gravida. Pellentesque velit erat, laoreet et interdum at, pulvinar ut felis.\n"
+		"\r\n"
+		"Praesent commodo pulvinar consectetur. Integer vehicula maximus sollicitudin. Aliquam cursus, purus euismod consequat finibus, nunc nisl porttitor leo, quis placerat ipsum tortor quis massa. Maecenas velit purus, cursus at finibus sit amet, euismod nec purus. Pellentesque dapibus, justo vitae tempus convallis, purus ligula porta sapien, at ultricies elit tortor quis nibh. Cras ac ex et lorem luctus pulvinar in quis odio. Mauris iaculis arcu nec gravida vestibulum. Praesent commodo, tellus nec aliquam mattis, mi dui pellentesque mi, et tempor nunc purus a mi. Vestibulum scelerisque posuere orci, fermentum euismod neque imperdiet vel. Aliquam sodales ex eget fringilla placerat. Maecenas auctor tempor feugiat. Nunc sed mi nibh. Praesent molestie suscipit diam, placerat commodo nulla tempor id volutpat.\n"
+		"\r\n"
+		"Generated 3 paragraphs, 296 words, 2048 bytes of Lorem Ipsum\r\n";
 
 /**@brief Function for error handling, which is called when an error has occurred. 
  *
@@ -575,6 +595,26 @@ static uint32_t device_manager_evt_handler(dm_handle_t const    * p_handle,
 }
 
 
+void pstorageCallback(pstorage_handle_t *  p_handle,
+                      uint8_t              op_code,
+                      uint32_t             result,
+                      uint8_t *            p_data,
+                      uint32_t             data_len)
+{
+ 	switch(op_code) {
+		case PSTORAGE_CLEAR_OP_CODE:
+		case PSTORAGE_STORE_OP_CODE:
+			pstorageBusy = false;
+
+			if(result == NRF_SUCCESS) {
+				// TODO
+			}
+			break;
+	}
+}
+
+
+
 /**@brief Function for the Device Manager initialization.
  */
 static void device_manager_init(void)
@@ -582,19 +622,28 @@ static void device_manager_init(void)
     uint32_t                err_code;
     dm_init_param_t         init_data;
     dm_application_param_t  register_param;
-
     // Initialize persistent storage module.
     err_code = pstorage_init();
     APP_ERROR_CHECK(err_code);
 
+    // Register persistent storage module.
+    pstorage_module_param_t param;
+    param.block_size  = PSTORAGE_BLOCKSIZE;
+    param.block_count = PSTORAGE_BLOCKCOUNT;
+    param.cb          = pstorageCallback;
+    err_code = pstorage_register(&param, &pstorageHandle);
+    APP_ERROR_CHECK(err_code);
+
+
     // Clear all bonded centrals if the "delete all bonds" button is pushed.
-    // JEM err_code = app_button_is_pushed(BOND_DELETE_ALL_BUTTON_ID, &init_data.clear_persistent_data);
-    err_code = app_button_is_pushed(10, &init_data.clear_persistent_data);
+    err_code = app_button_is_pushed(BUTTON_A_PIN, &init_data.clear_persistent_data);
     APP_ERROR_CHECK(err_code);
 
     err_code = dm_init(&init_data);
     APP_ERROR_CHECK(err_code);
     
+
+    // Initialize BLE
     memset(&register_param.sec_param, 0, sizeof(ble_gap_sec_params_t));
 
     register_param.sec_param.timeout      = SEC_PARAM_TIMEOUT;
@@ -685,14 +734,12 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
     {
         switch (pin_no)
         {
-            case 10:
-            	uartPrint("Duck PIN 10 \r\n");
-              display_ios_message();
+            case BUTTON_A_PIN:
+            	uartPrint("Duck PIN BUTTON_A_PIN \r\n");
               break;
 
-            case 8:
-            	uartPrint("Duck PIN 8 \r\n");
-              scroll_one();
+            case BUTTON_B_PIN:
+            	uartPrint("Duck PIN BUTTON_B_PIN \r\n");
               break;
 
             default:
@@ -720,21 +767,12 @@ static void buttons_init(void)
     // - Clearing of Alerts.
     // - Configuration of Alerts (CCCD).
     // - Wake-up application.
-#ifdef JEM
     static app_button_cfg_t buttons[] =
     {
-        {WAKEUP_BUTTON_PIN,          APP_BUTTON_ACTIVE_LOW, BUTTON_PULL, NULL},
-        {BOND_DELETE_ALL_BUTTON_ID,  APP_BUTTON_ACTIVE_LOW, BUTTON_PULL, NULL},
-        {DISPLAY_MESSAGE_BUTTON_PIN, APP_BUTTON_ACTIVE_LOW, BUTTON_PULL, button_event_handler},
-        {SCROLL_ONE_BUTTON_PIN,      APP_BUTTON_ACTIVE_LOW, BUTTON_PULL, button_event_handler}
+        {BUTTON_A_PIN, APP_BUTTON_ACTIVE_HIGH, NRF_GPIO_PIN_NOPULL, button_event_handler},
+        {BUTTON_B_PIN,      APP_BUTTON_ACTIVE_HIGH, NRF_GPIO_PIN_NOPULL, button_event_handler}
     };
-#else
-    static app_button_cfg_t buttons[] =
-    {
-        {10, APP_BUTTON_ACTIVE_HIGH, NRF_GPIO_PIN_NOPULL, button_event_handler},
-        {8,      APP_BUTTON_ACTIVE_HIGH, NRF_GPIO_PIN_NOPULL, button_event_handler}
-    };
-#endif
+
     APP_BUTTON_INIT(buttons, sizeof(buttons) / sizeof(buttons[0]), BUTTON_DETECTION_DELAY, false);
 }
 
@@ -837,7 +875,7 @@ static void service_add(void)
     
     // Clear all discovered and stored services if the  "delete all bonds" button is pushed.
 // JEM     err_code = app_button_is_pushed(BOND_DELETE_ALL_BUTTON_ID, &services_delete);
-    err_code = app_button_is_pushed(10, &services_delete);
+    err_code = app_button_is_pushed(BUTTON_A_PIN, &services_delete);
     APP_ERROR_CHECK(err_code);
 
     if (services_delete)
@@ -910,34 +948,31 @@ int main(void)
     service_add();
     advertising_init();
     conn_params_init();
-    uartPrint("Duck 1\r\n");
 	
 	ezI2CBegin();
-	uartPrint("Duck 2\r\n");
 	ezSPIInit(2, 0, 1, 31);
-	uartPrint("Duck 3\r\n");
 
 	DS1307_init();
-	uartPrint("Duck 4\r\n");
 
 	// Turn on LCD Backlight
 	nrf_gpio_cfg_output(9);
 	nrf_gpio_pin_set(9);
-	uartPrint("Duck 5\r\n");
 
 	ILI9163C(26, 4, 3);
-	uartPrint("Duck 6\r\n");
 	ILI9163C_start();
-	uartPrint("Duck 7\r\n");
 	ILI9163C_init(RibbonBottom);
-	uartPrint("Duck 8\r\n");
 	ILI9163C_clearScreen(rgb32To16(0xDD0000));
 	ILI9163C_drawString(5, 5, "Hello Duck 2", 0xFFFFFF, 0xDD0000);
 
-	uartPrint("Duck 9\r\n");
     // Start execution.
     advertising_start();
-    uartPrint("Duck 10\r\n");
+
+	uartPrint("Duck Clearing PStorage\r\n");
+//	pstorageBusy = false;
+//	pstorage_clear(&pstorageHandle, PSTORAGE_BLOCKCOUNT * PSTORAGE_BLOCKSIZE);
+//	while(pstorageBusy) {
+//		// nothing
+//	}
 
 	FATFS sdCard;
 	FRESULT res;
@@ -987,8 +1022,8 @@ int main(void)
 		uartPrint("Error Mounting\r\n");
 	}
 
-	nrf_gpio_cfg_input(8, NRF_GPIO_PIN_NOPULL);
-	nrf_gpio_cfg_input(10, NRF_GPIO_PIN_NOPULL);
+	nrf_gpio_cfg_input(BUTTON_B_PIN, NRF_GPIO_PIN_NOPULL);
+	nrf_gpio_cfg_input(BUTTON_A_PIN, NRF_GPIO_PIN_NOPULL);
 
 	app_button_enable();
 
