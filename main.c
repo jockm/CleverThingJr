@@ -924,6 +924,24 @@ void outchar(int c) {
 	simple_uart_put(c);
 }
 
+void clearPStorage()
+{
+	uartPrint("Duck Clear PStorage\r\n");
+	for (uint8_t i = 0; i < PSTORAGE_BLOCKCOUNT; i += 1024 / PSTORAGE_BLOCKSIZE) {
+		pstorage_handle_t blockHandle;
+		pstorageBusy = true;
+		uint32_t errCode = pstorage_block_identifier_get(&pstorageHandle, i,
+				&blockHandle);
+		APP_ERROR_CHECK(errCode);
+		errCode = pstorage_clear(&blockHandle, 1024);
+		APP_ERROR_CHECK(errCode);
+		while (pstorageBusy) {
+			// nothing
+		}
+	}
+	uartPrint("Duck Clear PStorage done\r\n");
+}
+
 /**@brief Function for application main entry.
  */
 int main(void)
@@ -1021,6 +1039,9 @@ int main(void)
 	} else {
 		uartPrint("Error Mounting\r\n");
 	}
+
+
+	clearPStorage();
 
 	nrf_gpio_cfg_input(BUTTON_B_PIN, NRF_GPIO_PIN_NOPULL);
 	nrf_gpio_cfg_input(BUTTON_A_PIN, NRF_GPIO_PIN_NOPULL);
