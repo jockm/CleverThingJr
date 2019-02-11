@@ -195,6 +195,8 @@ static const uint8_t lorem[] = "Lorem ipsum dolor sit amet, consectetur adipisci
  */
 void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t * p_file_name)
 {
+// JEM     nrf_gpio_pin_set(ASSERT_LED_PIN_NO);
+
     // This call can be used for debug purposes during application development.
     // @note CAUTION: Activating this code will write the stack to flash on an error.
     //                This function should NOT be used in a final product.
@@ -230,7 +232,7 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
  *
  * @details This function will be called when a successful connection has been established.
  */
-static void apple_notification_setup(void)
+static void setupAppleNotifications(void)
 {
     uint32_t err_code;
 
@@ -241,15 +243,15 @@ static void apple_notification_setup(void)
     APP_ERROR_CHECK(err_code);
 }
 
-static void display_ios_message(void);
+static void displayIosMessage(void);
 
 /**@brief Display an iOS notification
  *
  */
-void evt_ios_notification(ble_ancs_c_evt_ios_notification_t *p_notice)
+void onIosNotification(ble_ancs_c_evt_ios_notification_t *p_notice)
 {
-	// TODO turn into script event
-    char buffer[DISPLAY_BUFFER_SIZE];
+	// todo turn into script notification
+	char buffer[100];
 
     uartPrint((const uint8_t *)lit_catid[p_notice->category_id]);
     uartPrint((const uint8_t *)"\r\n");
@@ -266,13 +268,13 @@ void evt_ios_notification(ble_ancs_c_evt_ios_notification_t *p_notice)
 	uartPrint((const uint8_t *)"\r\n");
 	uartPrint((const uint8_t *)"\r\n");
 	
-	display_ios_message();
+	displayIosMessage();
 }
 
 /**@brief Display iOS notification message contents
  *
  */
-static void display_ios_message(void)
+static void displayIosMessage(void)
 {
 	// TODO combine with above
 	uartPrint((uint8_t *)display_title);
@@ -284,7 +286,7 @@ static void display_ios_message(void)
 /**@brief Copy notification attribute data to buffer
  *
  */
-static void evt_notif_attribute(ble_ancs_c_evt_notif_attribute_t *p_attr)
+static void attributeNotificationEvent(ble_ancs_c_evt_notif_attribute_t *p_attr)
 {
     if (p_attr->attribute_id == BLE_ANCS_NOTIFICATION_ATTRIBUTE_ID_TITLE)
     {
@@ -304,7 +306,7 @@ static void evt_notif_attribute(ble_ancs_c_evt_notif_attribute_t *p_attr)
  *
  * @param[in]   p_evt   Event received from the Apple Notification Service Client.
  */
-static void on_ancs_c_evt(ble_ancs_c_evt_t * p_evt)
+static void onAncsClientEvent(ble_ancs_c_evt_t * p_evt)
 {
     uint32_t err_code = NRF_SUCCESS;
 
@@ -316,11 +318,11 @@ static void on_ancs_c_evt(ble_ancs_c_evt_t * p_evt)
             break;
 
         case BLE_ANCS_C_EVT_IOS_NOTIFICATION:
-            evt_ios_notification(&p_evt->data.notification);
+            onIosNotification(&p_evt->data.notification);
             break;
 
         case BLE_ANCS_C_EVT_NOTIF_ATTRIBUTE:
-            evt_notif_attribute(&p_evt->data.attribute);
+            attributeNotificationEvent(&p_evt->data.attribute);
             break;
 
         default:
@@ -355,7 +357,7 @@ static void scriptTimerCallback(void *p_context)
  *
  * @details Initializes the timer module.
  */
-static void timers_init(void)
+static void initTimers(void)
 {
     uint32_t err_code;
 
@@ -371,7 +373,7 @@ static void timers_init(void)
 
 /**@brief Function for starting timers.
 */
-static void timers_start(void)
+static void startTimers(void)
 {
     uint32_t err_code;
 
@@ -382,7 +384,7 @@ static void timers_start(void)
 
 /**@brief Function for stoping timers.
 */
-static void timers_stop(void)
+static void stopTimers(void)
 {
     uint32_t err_code;
 
@@ -396,7 +398,7 @@ static void timers_stop(void)
  * @details This function shall be used to setup all the necessary GAP (Generic Access Profile)
  *          parameters of the device. It also sets the permissions and appearance.
  */
-static void gap_params_init(void)
+static void initGapParams(void)
 {
     uint32_t                err_code;
     ble_gap_conn_params_t   gap_conn_params;
@@ -426,7 +428,7 @@ static void gap_params_init(void)
  * @details Encodes the required advertising data and passes it to the stack.
  *          Also builds a structure to be passed to the stack when starting advertising.
  */
-static void advertising_init(void)
+static void initAdvertising(void)
 {
     uint32_t      err_code;
     ble_advdata_t advdata;
@@ -455,7 +457,7 @@ static void advertising_init(void)
 
 /**@brief Function for starting advertising.
  */
-static void advertising_start(void)
+static void startAdvertising(void)
 {
     uint32_t err_code;
 
@@ -495,7 +497,7 @@ static void advertising_start(void)
  *
  * @param[in]   nrf_error   Error code containing information about what went wrong.
  */
-static void apple_notification_error_handler(uint32_t nrf_error)
+static void appleNotificationErrorHandler(uint32_t nrf_error)
 {
     APP_ERROR_HANDLER(nrf_error);
 }
@@ -505,7 +507,7 @@ static void apple_notification_error_handler(uint32_t nrf_error)
  *
  * @param[in]   nrf_error   Error code containing information about what went wrong.
  */
-static void conn_params_error_handler(uint32_t nrf_error)
+static void connParamsErrorHandler(uint32_t nrf_error)
 {
     APP_ERROR_HANDLER(nrf_error);
 }
@@ -527,7 +529,7 @@ static void conn_params_init(void)
     cp_init.start_on_notify_cccd_handle    = BLE_GATT_HANDLE_INVALID;
     cp_init.disconnect_on_fail             = true;
     cp_init.evt_handler                    = NULL;
-    cp_init.error_handler                  = conn_params_error_handler;
+    cp_init.error_handler                  = connParamsErrorHandler;
 
     err_code = ble_conn_params_init(&cp_init);
     APP_ERROR_CHECK(err_code);
@@ -639,7 +641,7 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
             break;
         
         case BLE_GAP_EVT_AUTH_STATUS:
-            apple_notification_setup();
+            setupAppleNotifications();
             break;
             
         case BLE_GAP_EVT_DISCONNECTED:
@@ -652,13 +654,13 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
             err_code = ble_ans_c_service_store();
             APP_ERROR_CHECK(err_code);
 
-            advertising_start();
+            startAdvertising();
             break;
 
         case BLE_GAP_EVT_TIMEOUT:
             if (p_ble_evt->evt.gap_evt.params.timeout.src == BLE_GAP_TIMEOUT_SRC_ADVERTISEMENT)
             {
-                    advertising_start();
+                    startAdvertising();
             }
             break;
 
@@ -706,7 +708,7 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
 
 /**@brief Function for initializing the GPIOTE handler module.
  */
-static void gpiote_init(void)
+static void initGpiote(void)
 {
     APP_GPIOTE_INIT(APP_GPIOTE_MAX_USERS);
 }
@@ -714,7 +716,7 @@ static void gpiote_init(void)
 
 /**@brief Function for initializing the button handler module.
  */
-static void buttons_init(void)
+static void initButtons(void)
 {
     // Configure the button used to send alert to the peer. Configure it as wake up button too.
     // Configure Buttons. Buttons are used for:
@@ -790,13 +792,13 @@ static void ble_stack_init(void)
 
 /**@brief Function for the Power manager.
  */
-static void power_manage(void)
+static void powerManage(void)
 {
     uint32_t err_code = sd_app_evt_wait();
     APP_ERROR_CHECK(err_code);
 }
 
-static void service_add(void)
+static void addServices(void)
 {
     ble_ancs_c_init_t ancs_init_obj;
     ble_uuid_t        service_uuid;
@@ -818,10 +820,10 @@ static void service_add(void)
     memset(&ancs_init_obj, 0, sizeof(ancs_init_obj));
     memset(m_apple_message_buffer, 0, MESSAGE_BUFFER_SIZE);
 
-    ancs_init_obj.evt_handler         = on_ancs_c_evt;
+    ancs_init_obj.evt_handler         = onAncsClientEvent;
     ancs_init_obj.message_buffer_size = MESSAGE_BUFFER_SIZE;
     ancs_init_obj.p_message_buffer    = m_apple_message_buffer;
-    ancs_init_obj.error_handler       = apple_notification_error_handler;
+    ancs_init_obj.error_handler       = appleNotificationErrorHandler;
 
     err_code = ble_ancs_c_init(&m_ancs_c, &ancs_init_obj);
     APP_ERROR_CHECK(err_code);
@@ -852,7 +854,7 @@ static void gpio_config(void)
 
 /**@brief  Function for initializing the UART module.
  */
-static void uart_init(void)
+static void initUart(void)
 {
     simple_uart_config(30, 11, 31, 25, false);
 
@@ -903,15 +905,15 @@ int main(void)
     // Initialize.
     app_trace_init();
     leds_init();
-    timers_init();
-    gpiote_init();
-	uart_init();
-    buttons_init();
+    initTimers();
+    initGpiote();
+	initUart();
+    initButtons();
     ble_stack_init();
     device_manager_init();
-    gap_params_init();
-    service_add();
-    advertising_init();
+    initGapParams();
+    addServices();
+    initAdvertising();
     conn_params_init();
 	
 	ezI2CBegin();
@@ -930,7 +932,7 @@ int main(void)
 	ILI9163C_drawString(5, 5, "Hello Duck 2", 0xFFFFFF, 0xDD0000);
 
     // Start execution.
-    advertising_start();
+    startAdvertising();
 
 	uartPrint("Duck Clearing PStorage\r\n");
 //	pstorageBusy = false;
@@ -995,7 +997,7 @@ int main(void)
 
 	app_button_enable();
 
-	timers_start();
+	startTimers();
 
 	TinyScript_Init(tinyscriptArena, sizeof(tinyscriptArena));
 	TinyScript_Run("print \"Hello TinyScript\"", false, true);
@@ -1014,7 +1016,7 @@ int main(void)
 //		uartPrint((foo ? "H" : "L"));
 //    	uartPrint("\r\n");
 
-        power_manage();
+        powerManage();
     }
 
 }
