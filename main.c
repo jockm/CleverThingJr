@@ -163,7 +163,6 @@ static ble_advertising_mode_t           m_advertising_mode;                     
 
 static char                             display_title[DISPLAY_BUFFER_SIZE];
 static char                             display_message[DISPLAY_BUFFER_SIZE];
-static uint32_t                         display_offset = 0;
 static uint8_t                          m_ancs_uuid_type;
 static dm_application_instance_t        m_app_handle;                                        /**< Application identifier allocated by device manager. */
 static dm_handle_t                      m_peer_handle;                                       /**< Identifes the peer that is currently connected. */
@@ -196,8 +195,6 @@ static const uint8_t lorem[] = "Lorem ipsum dolor sit amet, consectetur adipisci
  */
 void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t * p_file_name)
 {
-// JEM     nrf_gpio_pin_set(ASSERT_LED_PIN_NO);
-
     // This call can be used for debug purposes during application development.
     // @note CAUTION: Activating this code will write the stack to flash on an error.
     //                This function should NOT be used in a final product.
@@ -251,21 +248,9 @@ static void display_ios_message(void);
  */
 void evt_ios_notification(ble_ancs_c_evt_ios_notification_t *p_notice)
 {
-//JEM     bool success;
+	// TODO turn into script event
     char buffer[DISPLAY_BUFFER_SIZE];
-    
-//JEM     success = nrf6350_lcd_write_string(lit_catid[p_notice->category_id], 
-//JEM         strlen(lit_catid[p_notice->category_id]), LCD_UPPER_LINE, 0);
-//JEM     APP_ERROR_CHECK_BOOL(success);
-    
-//JEM     sprintf(buffer, "%s %02x%02x%02x%02x",
-//JEM         lit_eventid[p_notice->event_id], 
-//JEM         p_notice->notification_uid[0], p_notice->notification_uid[1], 
-//JEM         p_notice->notification_uid[2], p_notice->notification_uid[3]);
 
-//JEM     success = nrf6350_lcd_write_string(buffer, strlen(buffer), LCD_LOWER_LINE, 0);
-//JEM     APP_ERROR_CHECK_BOOL(success);
-	
     uartPrint((const uint8_t *)lit_catid[p_notice->category_id]);
     uartPrint((const uint8_t *)"\r\n");
 
@@ -289,33 +274,11 @@ void evt_ios_notification(ble_ancs_c_evt_ios_notification_t *p_notice)
  */
 static void display_ios_message(void)
 {
-//JEM     bool success;
-
-//JEM     success = nrf6350_lcd_write_string(display_title, strlen(display_title), LCD_UPPER_LINE, 0);
-//JEM     APP_ERROR_CHECK_BOOL(success);
-//JEM     success = nrf6350_lcd_write_string(display_message, strlen(display_message), LCD_LOWER_LINE, 0);
-//JEM     APP_ERROR_CHECK_BOOL(success);
-
-//JEM     display_offset = 0;
-
+	// TODO combine with above
 	uartPrint((uint8_t *)display_title);
 	uartPrint((uint8_t *)"\r\n");
 	uartPrint((uint8_t *)display_message);
 	uartPrint((uint8_t *)"\r\n");
-}
-
-/**@brief Scroll message contents
- *
- */
- static void scroll_one(void)
-{
-//JEM     bool success;
-
-    display_offset++;
-
-//JEM     success = nrf6350_lcd_write_string(display_message + display_offset,
-//JEM                              strlen(display_message) - display_offset, LCD_LOWER_LINE, 0);
-//JEM     APP_ERROR_CHECK_BOOL(success);
 }
 
 /**@brief Copy notification attribute data to buffer
@@ -373,9 +336,7 @@ static void on_ancs_c_evt(ble_ancs_c_evt_t * p_evt)
  */
 static void leds_init(void)
 {
-// JEM     nrf_gpio_cfg_output(ADVERTISING_LED_PIN_NO);
-// JEM     nrf_gpio_cfg_output(CONNECTED_LED_PIN_NO);
-// JEM     nrf_gpio_cfg_output(ASSERT_LED_PIN_NO);
+	// Nothing
 }
 
 
@@ -527,8 +488,6 @@ static void advertising_start(void)
 
     err_code = sd_ble_gap_adv_start(&m_adv_params);
     APP_ERROR_CHECK(err_code);
-
-// JEM     nrf_gpio_pin_set(ADVERTISING_LED_PIN_NO);
 }
 
 
@@ -674,9 +633,6 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
     switch (p_ble_evt->header.evt_id)
     {
         case BLE_GAP_EVT_CONNECTED:
-// JEM             nrf_gpio_pin_set(CONNECTED_LED_PIN_NO);
-// JEM             nrf_gpio_pin_clear(ADVERTISING_LED_PIN_NO);
-        	// TODO should we do this???
             err_code = app_button_enable();
             m_advertising_mode = BLE_NO_ADVERTISING;
             m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
@@ -687,8 +643,6 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
             break;
             
         case BLE_GAP_EVT_DISCONNECTED:
-// JEM             nrf_gpio_pin_clear(CONNECTED_LED_PIN_NO);
-
             m_conn_handle = BLE_CONN_HANDLE_INVALID;
 
             // Stop detecting button presses when not connected.
@@ -815,7 +769,6 @@ static void ble_stack_init(void)
     uint32_t err_code;
     
     // Initialize the SoftDevice handler module.
-// JEM     SOFTDEVICE_HANDLER_INIT(NRF_CLOCK_LFCLKSRC_XTAL_20_PPM, false);
     SOFTDEVICE_HANDLER_INIT(NRF_CLOCK_LFCLKSRC_SYNTH_250_PPM, false);
 
     // Enable BLE stack 
@@ -874,7 +827,6 @@ static void service_add(void)
     APP_ERROR_CHECK(err_code);
     
     // Clear all discovered and stored services if the  "delete all bonds" button is pushed.
-// JEM     err_code = app_button_is_pushed(BOND_DELETE_ALL_BUTTON_ID, &services_delete);
     err_code = app_button_is_pushed(BUTTON_A_PIN, &services_delete);
     APP_ERROR_CHECK(err_code);
 
@@ -947,11 +899,6 @@ void clearPStorage()
 int main(void)
 {
     gpio_config();
-
-//JEM     bool success = nrf6350_lcd_init();
-//JEM     APP_ERROR_CHECK_BOOL(success);
-//JEM     success = nrf6350_lcd_write_string("    BLE ANCS    ", MAX_CHARACTERS_PER_LINE, LCD_UPPER_LINE, 0);
-//JEM     APP_ERROR_CHECK_BOOL(success);
 
     // Initialize.
     app_trace_init();
