@@ -14,6 +14,8 @@
  	displayWidth = 128,
  	displayHeight = 128,
 
+	lineBufferSize = 256,
+
  	CMD_NOP = 0x00,
  	CMD_SOFT_RESET = 0x01,
  	CMD_GET_RED_CHANNEL = 0x06,
@@ -77,8 +79,9 @@
  	CMD_GAM_R_SEL = 0xF2,
  };
 
+ extern uint8_t     buf[displayWidth*2];
+
  static uint16_t    currColor;
- static uint8_t     buf[displayWidth*2];
 
  static uint8_t     csPin;
  static uint8_t     dcPin;
@@ -359,7 +362,7 @@
  {
  	//TODO Clipping window
 
- 	for(uint16_t i = 0; i < sizeof(buf); i += 2) {
+ 	for(uint16_t i = 0; i < lineBufferSize; i += 2) {
  		buf[i] = color >> 8;
  		buf[i + 1] = color & 0xff;
  	}
@@ -386,7 +389,7 @@
  	nrf_gpio_pin_set(dcPin);
 
  	for(uint16_t i = 0; i < displayHeight; ++i) {
- 		ezSPIBulkWrite(buf, sizeof(buf), NULL, 0);
+ 		ezSPIBulkWrite(buf, lineBufferSize, NULL, 0);
  	}
 
  	nrf_gpio_pin_set(csPin); // Disable CS
@@ -396,7 +399,7 @@
  {
  	//TODO Clipping window
 
- 	for(uint16_t i = 0; i < sizeof(buf); i += 2) {
+ 	for(uint16_t i = 0; i < lineBufferSize; i += 2) {
  		buf[i] = color >> 8;
  		buf[i + 1] = color & 0xff;
  	}
@@ -411,7 +414,7 @@
  	nrf_gpio_pin_set(dcPin);
 
  	for(uint16_t i = startY; i < endY; ++i) {
- 		ezSPIBulkWrite(buf, sizeof(buf), NULL, 0);
+ 		ezSPIBulkWrite(buf, lineBufferSize, NULL, 0);
  	}
 
  	nrf_gpio_pin_set(csPin); // Disable CS

@@ -169,20 +169,14 @@ static dm_handle_t                      m_peer_handle;                          
 
 static app_timer_id_t                   scriptTimerId;
 
-static pstorage_handle_t       pstorageHandle;
-volatile static bool  pstorageBusy;
+static FATFS                            sdCard;
 
+static pstorage_handle_t                pstorageHandle;
+volatile static bool                    pstorageBusy;
 
-static uint8_t tinyscriptArena[2048];
+static uint8_t                          tinyscriptArena[2048];
 
-
-static const uint8_t lorem[] = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ligula odio, aliquam eget sollicitudin vel, semper vitae lacus. Duis sed blandit lorem. In hac habitasse platea dictumst. Nulla lobortis convallis egestas. Nullam ut lacus dictum, finibus massa finibus, scelerisque nunc. Aliquam non erat sollicitudin, imperdiet lorem a, auctor libero. Nam arcu nibh, rutrum et dignissim nec, sodales nec odio. Vestibulum nec odio sollicitudin lorem interdum placerat ac et nulla.\r\n"
-		"\r\n"
-		"Praesent tempor nunc ut auctor porta. Suspendisse vel dolor vel elit interdum imperdiet. Praesent laoreet porttitor porttitor. Nam pellentesque hendrerit lacus a elementum. Praesent sed bibendum est. In sed faucibus ante, a facilisis ex. Pellentesque nec ipsum quis magna congue ultricies sed nec arcu. Donec eget lacus volutpat, molestie odio vel, efficitur ipsum. Nulla egestas ligula a iaculis hendrerit. Etiam finibus ut lacus eget dapibus. Donec tempor porta nisl, a suscipit leo scelerisque vel. Suspendisse commodo erat eget nibh condimentum, dapibus commodo ante tempus. Morbi sollicitudin sem a diam varius, sed porta est ullamcorper. Donec viverra sem vitae justo varius gravida. Pellentesque velit erat, laoreet et interdum at, pulvinar ut felis.\n"
-		"\r\n"
-		"Praesent commodo pulvinar consectetur. Integer vehicula maximus sollicitudin. Aliquam cursus, purus euismod consequat finibus, nunc nisl porttitor leo, quis placerat ipsum tortor quis massa. Maecenas velit purus, cursus at finibus sit amet, euismod nec purus. Pellentesque dapibus, justo vitae tempus convallis, purus ligula porta sapien, at ultricies elit tortor quis nibh. Cras ac ex et lorem luctus pulvinar in quis odio. Mauris iaculis arcu nec gravida vestibulum. Praesent commodo, tellus nec aliquam mattis, mi dui pellentesque mi, et tempor nunc purus a mi. Vestibulum scelerisque posuere orci, fermentum euismod neque imperdiet vel. Aliquam sodales ex eget fringilla placerat. Maecenas auctor tempor feugiat. Nunc sed mi nibh. Praesent molestie suscipit diam, placerat commodo nulla tempor id volutpat.\n"
-		"\r\n"
-		"Generated 3 paragraphs, 296 words, 2048 bytes of Lorem Ipsum\r\n";
+       uint8_t                          buf[256];
 
 /**@brief Function for error handling, which is called when an error has occurred. 
  *
@@ -195,8 +189,6 @@ static const uint8_t lorem[] = "Lorem ipsum dolor sit amet, consectetur adipisci
  */
 void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t * p_file_name)
 {
-// JEM     nrf_gpio_pin_set(ASSERT_LED_PIN_NO);
-
     // This call can be used for debug purposes during application development.
     // @note CAUTION: Activating this code will write the stack to flash on an error.
     //                This function should NOT be used in a final product.
@@ -845,7 +837,7 @@ static void addServices(void)
 
 /** @brief Function for configuring ERROR_PIN as output for showing errors.
  */
-static void gpio_config(void)
+static void configureGpio(void)
 {
     // Configure ERROR_PIN as output to show errors.
     nrf_gpio_cfg_output(ERROR_PIN);
@@ -884,23 +876,76 @@ void clearPStorage()
 	for (uint8_t i = 0; i < PSTORAGE_BLOCKCOUNT; i += 1024 / PSTORAGE_BLOCKSIZE) {
 		pstorage_handle_t blockHandle;
 		pstorageBusy = true;
+
+		char b[100];sprintf(b, "Duck clearing @%d\r\n", i);uartPrint(b);
 		uint32_t errCode = pstorage_block_identifier_get(&pstorageHandle, i,
 				&blockHandle);
 		APP_ERROR_CHECK(errCode);
 		errCode = pstorage_clear(&blockHandle, 1024);
 		APP_ERROR_CHECK(errCode);
 		while (pstorageBusy) {
-			// nothing
+			powerManage();
 		}
 	}
 	uartPrint("Duck Clear PStorage done\r\n");
+}
+
+
+bool writeFileToPStorage(const char *fname)
+{
+	pstorage_handle_t blockHandle;
+
+	if(pf_open(fname) != FR_OK) {
+		return false;
+	}
+
+	clearPStorage();
+
+	
+	uint16_t blockNo = 0;
+	uint16_t bytesRead;
+
+	while(true) {
+		if(pf_read(buf, PSTORAGE_BLOCKSIZE, &bytesRead) != FR_OK) {
+			// todo Handle read error
+		}
+
+		uint32_t errCode = pstorage_block_identifier_get(&pstorageHandle, blockNo, &blockHandle);
+		APP_ERROR_CHECK(errCode);
+
+		pstorageBusy = true;
+		errCode = pstorage_store(&blockHandle, buf, PSTORAGE_BLOCKSIZE, 0);
+		APP_ERROR_CHECK(errCode);
+
+		while(pstorageBusy) {
+			powerManage();
+		}
+
+		++blockNo;
+	}
+
+
+	return true;
+}
+
+
+void runStoredScript()
+{
+	pstorage_handle_t blockHandle;
+
+	uint32_t errCode = pstorage_block_identifier_get(&pstorageHandle, 0, &blockHandle);
+	APP_ERROR_CHECK(errCode);
+
+	TinyScript_Run((char *) blockHandle.block_id, false, true);
+	uartPrint((char *) blockHandle.block_id);
+
 }
 
 /**@brief Function for application main entry.
  */
 int main(void)
 {
-    gpio_config();
+    configureGpio();
 
     // Initialize.
     app_trace_init();
@@ -915,7 +960,7 @@ int main(void)
     addServices();
     initAdvertising();
     conn_params_init();
-	
+
 	ezI2CBegin();
 	ezSPIInit(2, 0, 1, 31);
 
@@ -934,14 +979,7 @@ int main(void)
     // Start execution.
     startAdvertising();
 
-	uartPrint("Duck Clearing PStorage\r\n");
-//	pstorageBusy = false;
-//	pstorage_clear(&pstorageHandle, PSTORAGE_BLOCKCOUNT * PSTORAGE_BLOCKSIZE);
-//	while(pstorageBusy) {
-//		// nothing
-//	}
 
-	FATFS sdCard;
 	FRESULT res;
 	uartPrint("Duck Mounting...\r\n");
 	for(uint8_t i = 0; i < 10; ++i) {
@@ -989,8 +1027,6 @@ int main(void)
 		uartPrint("Error Mounting\r\n");
 	}
 
-
-	clearPStorage();
 
 	nrf_gpio_cfg_input(BUTTON_B_PIN, NRF_GPIO_PIN_NOPULL);
 	nrf_gpio_cfg_input(BUTTON_A_PIN, NRF_GPIO_PIN_NOPULL);
