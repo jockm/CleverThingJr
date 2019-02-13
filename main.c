@@ -59,6 +59,8 @@
 #include "libpff/pff.h"
 #include "tinyscript.h"
 
+#include "CleverData.h"
+
 #define uartPrint(s)                    simple_uart_putstring((const uint8_t *) s);
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 0                                                    /**< Include or not the service_changed characteristic. if not enabled, the server's database cannot be changed for the lifetime of the device*/
@@ -176,7 +178,6 @@ volatile static bool                    pstorageBusy;
 
 static uint8_t                          tinyscriptArena[2048];
 
-       uint8_t                          buf[256];
 
 /**@brief Function for error handling, which is called when an error has occurred. 
  *

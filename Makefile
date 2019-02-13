@@ -3,6 +3,8 @@ BOARD := BOARD_NRF6310
 
 # application source
 C_SOURCE_FILES += main.c
+C_SOURCE_FILES += CleverData.c
+C_SOURCE_FILES += CleverCommands.c
 C_SOURCE_FILES += ble_ancs_c.c
 C_SOURCE_FILES += ezI2C.c
 C_SOURCE_FILES += ezSPI.c

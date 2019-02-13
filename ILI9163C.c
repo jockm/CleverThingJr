@@ -6,6 +6,7 @@
 #include "ILI9163C.h"
 #include "font8x8/font8x8.h"
 
+#include "CleverData.h"
 
 
  // ILI9163 LCD Controller Commands
@@ -79,7 +80,6 @@
  	CMD_GAM_R_SEL = 0xF2,
  };
 
- extern uint8_t     buf[displayWidth*2];
 
  static uint16_t    currColor;
 
