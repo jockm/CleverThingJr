@@ -8,7 +8,7 @@
 #ifndef CLEVERCOMMANDS_H_
 #define CLEVERCOMMANDS_H_
 
-
+#include "tinyscript.h"
 
 
 
