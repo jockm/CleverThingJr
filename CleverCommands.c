@@ -8,9 +8,10 @@ Val cmdArrayGet(Val idx)
 }
 
 
-void cmdArraySet(Val idx, Val val)
+Val cmdArraySet(Val idx, Val val)
 {
 	arraySet((int32_t) idx, (int32_t) val);
+	return (Val) 0;
 }
 
 
@@ -21,9 +22,17 @@ Val cmdArrayLen()
 
 
 
-void cmdStringCat(Val sDest, Val sSource)
+Val cmdStringCat(Val sDest, Val sSource)
 {
 	stringCat((int32_t) sDest, (int32_t) sSource);
+	return (Val) 0;
+}
+
+
+Val cmdStringCatChar(Val sDest, Val c)
+{
+	stringCatChar((int32_t) sDest, (int32_t) c);
+	return (Val) 0;
 }
 
 
@@ -33,9 +42,10 @@ Val cmdStringLen(Val sNo)
 }
 
 
-void cmdStringCut(Val sNo, Val sNo2, Val start, Val end)
+Val cmdStringCut(Val sNo, Val sNo2, Val start, Val end)
 {
 	stringCut((int32_t) sNo, (int32_t) sNo2, (int32_t) start, (int32_t) end);
+	return (Val) 0;
 }
 
 
@@ -45,14 +55,21 @@ Val cmdStringPos(Val sNo, Val sTarget)
 }
 
 
-void cmdStringToUpper(Val sNo)
+Val cmdStringToUpper(Val sNo)
 {
 	stringToUpper((int32_t) sNo);
+	return (Val) 0;
 }
 
 
-void cmdStringToLower(Val sNo)
+Val cmdStringToLower(Val sNo)
 {
 	stringToLower((int32_t) sNo);
+	return (Val) 0;
 }
 
+
+Val cmdNot(Val v)
+{
+	return (Val) !v;
+}

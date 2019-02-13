@@ -176,6 +176,7 @@ static FATFS                            sdCard;
 static pstorage_handle_t                pstorageHandle;
 volatile static bool                    pstorageBusy;
 
+static bool                             tsOutpuMode;
 static uint8_t                          tinyscriptArena[2048];
 
 
@@ -866,9 +867,29 @@ void UART0_IRQHandler(void)
 }
 
 
-int inchar(void) {}
-void outchar(int c) {
-	simple_uart_put(c);
+int tsInChar(void) {
+	// TODO
+}
+
+void tsBeginOutput()
+{
+	tsOutpuMode = true;
+}
+
+
+void tsBeginString()
+{
+	tsOutpuMode = false;
+	stringSet(0, "");
+}
+
+
+void tsOutChar(int c) {
+	if(tsOutpuMode) {
+		simple_uart_put(c);
+	} else {
+		stringCatChar(0, c);
+	}
 }
 
 void clearPStorage()

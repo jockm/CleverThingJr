@@ -10,7 +10,7 @@
 
 #include "CleverData.h"
 
-#define NUMSTRINGS  15
+#define NUMSTRINGS  16
 #define STRINGWIDTH 31
 #define ARRAYLEN    100
 
@@ -78,6 +78,23 @@ void stringCat(int32_t sDest, int32_t sSource)
 
 	strncat(strings[sDest], strings[sSource], STRINGWIDTH);
 	strings[sDest][STRINGWIDTH - 1] = '\0';
+}
+
+
+void stringCatChar(int32_t sDest, char c)
+{
+	if(sDest < 0 || sDest >= NUMSTRINGS) {
+		return;
+	}
+
+	int32_t catPos = strlen(strings[sDest]);
+
+	if(catPos >= STRINGWIDTH - 1) {
+		return;
+	}
+
+	strings[sDest][catPos] = c;
+	strings[sDest][catPos + 1] = c;
 }
 
 

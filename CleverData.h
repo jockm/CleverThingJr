@@ -16,6 +16,7 @@
 	void stringSet(int32_t sNo, const char *str);
 	const char *stringGet(int32_t sNo);
 	void stringCat(int32_t sDest, int32_t sSource);
+	void stringCatChar(int32_t sDest, char sSource);
 	int32_t stringLen(int32_t sNo);
 	void stringCut(int32_t sNo, int32_t sNo2, int32_t start, int32_t end);
 	int32_t stringPos(int32_t sNo, int32_t sTarget);
