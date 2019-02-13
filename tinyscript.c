@@ -95,7 +95,7 @@ PrintString(String s)
     unsigned len = StringGetLen(s);
     const char *ptr = (const char *)StringGetPtr(s);
     while (len > 0) {
-        outchar(*ptr);
+        tsOutChar(*ptr);
         ptr++;
         --len;
     }
@@ -105,7 +105,7 @@ PrintString(String s)
 void
 Newline(void)
 {
-    outchar('\n');
+    tsOutChar('\n');
 }
 
 // print a number
@@ -121,7 +121,7 @@ PrintNumber(Val v)
     char buf[32];
     
     if (v < 0) {
-        outchar('-');
+        tsOutChar('-');
         x = -v;
     } else {
         x = v;
@@ -136,7 +136,7 @@ PrintNumber(Val v)
     // now output
     while (digits > 0) {
         --digits;
-        outchar(buf[digits]);
+        tsOutChar(buf[digits]);
     }
 }
 
@@ -160,7 +160,7 @@ static void
 outcstr(const char *ptr)
 {
     while (*ptr) {
-        outchar(*ptr++);
+        tsOutChar(*ptr++);
     }
 }
 
@@ -171,7 +171,7 @@ outcstr(const char *ptr)
 static int SyntaxError() {
     outcstr("syntax error before:");
     PrintString(parseptr);
-    outchar('\n');
+    tsOutChar('\n');
     return TS_ERR_SYNTAX;
 }
 static int ArgMismatch() {
@@ -210,6 +210,7 @@ static int UnknownSymbol() {
 #define TOK_ELSE   'e'
 #define TOK_WHILE  'w'
 #define TOK_PRINT  'p'
+#define TOK_STR    'P'
 #define TOK_VAR    'v'
 #define TOK_VARDEF 'V'
 #define TOK_BUILTIN 'B'
@@ -891,6 +892,8 @@ ParsePrint()
     int c;
     int err = TS_ERR_OK;
 
+    tsBeginOutput();
+
 print_more:
     c = NextToken();
     if (c == TOK_STRING) {
@@ -908,6 +911,34 @@ print_more:
         goto print_more;
     }
     Newline();
+    return err;
+}
+
+// handle print statement
+static int
+ParseStr()
+{
+    int c;
+    int err = TS_ERR_OK;
+
+    tsBeginString();
+
+str_more:
+    c = NextToken();
+    if (c == TOK_STRING) {
+        PrintString(token);
+        NextToken();
+    } else {
+        Val val;
+        err = ParseExpr(&val);
+        if (err != TS_ERR_OK) {
+            return err;
+        }
+        PrintNumber(val);
+    }
+    if (curToken == ',') {
+        goto str_more;
+    }
     return err;
 }
 
@@ -1045,6 +1076,7 @@ ParseString(String str, int saveStrings, int topLevel)
 //
 static Val prod(Val x, Val y) { return x*y; }
 static Val quot(Val x, Val y) { return x/y; }
+static Val mod(Val x, Val y) { return x%y; }
 static Val sum(Val x, Val y) { return x+y; }
 static Val diff(Val x, Val y) { return x-y; }
 static Val bitand(Val x, Val y) { return x&y; }
@@ -1065,16 +1097,18 @@ static struct def {
     intptr_t val;
 } defs[] = {
     // keywords
-    { "if",    TOK_IF, (intptr_t)ParseIf },
-    { "else",  TOK_ELSE, 0 },
-    { "while", TOK_WHILE, (intptr_t)ParseWhile },
-    { "print", TOK_PRINT, (intptr_t)ParsePrint },
-    { "var",   TOK_VARDEF, 0 },
+    { "if",    TOK_IF,      (intptr_t)ParseIf },
+    { "else",  TOK_ELSE,    0 },
+    { "while", TOK_WHILE,   (intptr_t)ParseWhile },
+    { "print", TOK_PRINT,   (intptr_t)ParsePrint },
+    { "str",   TOK_STR,     (intptr_t)ParseStr },
+    { "var",   TOK_VARDEF,  0 },
     { "func",  TOK_FUNCDEF, (intptr_t)ParseFuncDef },
     { "return", TOK_RETURN, (intptr_t)ParseReturn },
     // operators
     { "*",     BINOP(1), (intptr_t)prod },
     { "/",     BINOP(1), (intptr_t)quot },
+    { "%",     BINOP(1), (intptr_t)mod },
     { "+",     BINOP(2), (intptr_t)sum },
     { "-",     BINOP(2), (intptr_t)diff },
     { "&",     BINOP(3), (intptr_t)bitand },

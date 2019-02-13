@@ -95,7 +95,9 @@ int TinyScript_Define(const char *name, int toktype, Val value);
 int TinyScript_Run(const char *s, int saveStrings, int topLevel);
 
 // provided by our caller
-extern int inchar(void);
-extern void outchar(int c);
+extern int tsInChar(void);
+extern void tsOutChar(int c);
+extern void tsBeginOutput();
+extern void tsBeginString();
 
 #endif
