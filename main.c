@@ -60,6 +60,7 @@
 #include "tinyscript.h"
 
 #include "CleverData.h"
+#include "CleverCommands.h"
 
 #define uartPrint(s)                    simple_uart_putstring((const uint8_t *) s);
 
@@ -1058,6 +1059,8 @@ int main(void)
 	startTimers();
 
 	TinyScript_Init(tinyscriptArena, sizeof(tinyscriptArena));
+	addTinyScriptExtensions();
+
 	TinyScript_Run("print \"Hello TinyScript\"", false, true);
 
     // Enter main loop.
