@@ -38,6 +38,11 @@
  	void ILI9163C_drawRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t c);
  	void ILI9163C_drawHLine(uint16_t x, uint16_t y, uint16_t w, uint16_t c);
  	void ILI9163C_drawVLine(uint8_t x, uint8_t y, uint8_t h, uint16_t c);
+ 	void ILI9163C_drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color);
+ 	void ILI9163C_drawCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color);
+ 	void ILI9163C_drawCircleHelper( int16_t x0, int16_t y0, int16_t r, uint8_t cornername, uint16_t color);
+ 	void ILI9163C_fillCircleHelper(int16_t x0, int16_t y0, int16_t r, uint8_t corners, int16_t delta, uint16_t color);
+ 	void ILI9163C_fillCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color);
  	void ILI9163C_clearScreen(uint16_t color);
  	void ILI9163C_clearRows(uint8_t startY, uint8_t endY, uint16_t color);
  	void ILI9163C_drawPoint(uint8_t x, uint8_t y, uint16_t color);
