@@ -4,6 +4,7 @@
 #include <nrf_delay.h>
 
 #include "ILI9163C.h"
+#include "ezI2C.h"
 
 
 static uint16_t fgColor;
@@ -189,17 +190,20 @@ Val cmdHLine(Val x, Val y, Val w, Val z)
 	return (Val) 0;
 }
 
+
 Val cmdVLine(Val x, Val y, Val w, Val z)
 {
 	ILI9163C_drawVLine((uint16_t) x, (uint16_t) y, (uint16_t) z, fgColor);
 	return (Val) 0;
 }
 
+
 Val cmdLine(Val x, Val y, Val x2, Val y2)
 {
 	ILI9163C_drawLine((int16_t) x, (int16_t) y, (int16_t) x2, (int16_t) y2, fgColor);
 	return (Val) 0;
 }
+
 
 Val cmdCircle(Val x0, Val y0, Val r)
 {
@@ -215,11 +219,35 @@ Val cmdFilledCircle(Val x0, Val y0, Val r)
 }
 
 
+Val cmdI2CAddr(Val a)
+{
+	ezI2CSetAddr(((int32_t) a) & 0xFF);
+	return (Val) 0;
+}
+
+
+Val cmdI2CWrite(Val a)
+{
+	ezI2CWrite(((int32_t) a) & 0xFF);
+	return (Val) 0;
+}
+
+
+Val cmdI2CRead()
+{
+	return (Val) ezI2CRead();
+}
+
+
+// TODO add time/timezone commands
+// TODO add load bitmap command
+
 void addTinyScriptExtensions()
 {
 	TinyScript_Define("get",		BUILTIN, (Val) cmdArrayGet);
 	TinyScript_Define("set",		BUILTIN, (Val) cmdArraySet);
 	TinyScript_Define("alen",		BUILTIN, (Val) cmdArrayLen);
+
 	TinyScript_Define("strcnt",		BUILTIN, (Val) cmdStringCount);
 	TinyScript_Define("strcmp",		BUILTIN, (Val) cmdStringCompare);
 	TinyScript_Define("strcopy",	BUILTIN, (Val) cmdStringSet);
@@ -230,8 +258,11 @@ void addTinyScriptExtensions()
 	TinyScript_Define("strpos",		BUILTIN, (Val) cmdStringPos);
 	TinyScript_Define("strUp",		BUILTIN, (Val) cmdStringToUpper);
 	TinyScript_Define("strLow",		BUILTIN, (Val) cmdStringToLower);
+
 	TinyScript_Define("not",		BUILTIN, (Val) cmdNot);
+
 	TinyScript_Define("wait",		BUILTIN, (Val) cmdWait);
+
 	TinyScript_Define("rgb",		BUILTIN, (Val) cmdRGB);
 	TinyScript_Define("fg",			BUILTIN, (Val) cmdSetFg);
 	TinyScript_Define("bg",			BUILTIN, (Val) cmdSetBg);
@@ -248,4 +279,8 @@ void addTinyScriptExtensions()
 	TinyScript_Define("line",		BUILTIN, (Val) cmdLine);
 	TinyScript_Define("hline",		BUILTIN, (Val) cmdHLine);
 	TinyScript_Define("vline",		BUILTIN, (Val) cmdVLine);
+
+	TinyScript_Define("i2cAddr",	BUILTIN, (Val) cmdI2CAddr);
+	TinyScript_Define("i2cWrite",	BUILTIN, (Val) cmdI2CWrite);
+	TinyScript_Define("i2CRead",	BUILTIN, (Val) cmdI2CRead);
 }
