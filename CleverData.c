@@ -10,8 +10,8 @@
 
 #include "CleverData.h"
 
-#define NUMSTRINGS  16
-#define STRINGWIDTH 31
+#define NUMSTRINGS  20
+#define STRINGWIDTH 21
 #define ARRAYLEN    100
 
 
@@ -45,6 +45,12 @@ int32_t arrayLen()
 }
 
 
+int32_t stringCount()
+{
+	return stringCount();
+}
+
+
 void stringSet(int32_t sNo, const char *str)
 {
 	if(sNo < 0 || sNo >= NUMSTRINGS) {
@@ -66,6 +72,21 @@ const char *stringGet(int32_t sNo)
 }
 
 
+void stringCopy(int32_t sDest, int32_t sSource)
+{
+	if(sDest < 0 || sDest >= NUMSTRINGS) {
+		return;
+	}
+
+	if(sSource < 0 || sSource >= NUMSTRINGS) {
+		return;
+	}
+
+	strncpy(strings[sDest], strings[sSource], STRINGWIDTH);
+	strings[sDest][STRINGWIDTH - 1] = '\0';
+}
+
+
 void stringCat(int32_t sDest, int32_t sSource)
 {
 	if(sDest < 0 || sDest >= NUMSTRINGS) {
@@ -78,6 +99,21 @@ void stringCat(int32_t sDest, int32_t sSource)
 
 	strncat(strings[sDest], strings[sSource], STRINGWIDTH);
 	strings[sDest][STRINGWIDTH - 1] = '\0';
+}
+
+
+int32_t stringCompare(int32_t s1, int32_t s2)
+{
+	if(s1 < 0 || s1 >= NUMSTRINGS) {
+		return 0;
+	}
+
+	if(s2 < 0 || s2 >= NUMSTRINGS) {
+		return 0;
+	}
+
+	int32_t ret = strcmp(strings[s1], strings[s2]);
+	return (Val) ret;
 }
 
 

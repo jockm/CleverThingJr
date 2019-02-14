@@ -13,8 +13,11 @@
 	void arraySet(int32_t idx, int32_t val);
 	int32_t arrayLen();
 
+	int32_t stringCount();
 	void stringSet(int32_t sNo, const char *str);
 	const char *stringGet(int32_t sNo);
+	void stringCopy(int32_t sDest, int32_t sSource);
+	int32_t stringCompare(int32_t s1, int32_t s2);
 	void stringCat(int32_t sDest, int32_t sSource);
 	void stringCatChar(int32_t sDest, char sSource);
 	int32_t stringLen(int32_t sNo);
