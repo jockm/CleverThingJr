@@ -195,37 +195,57 @@ Val cmdVLine(Val x, Val y, Val w, Val z)
 	return (Val) 0;
 }
 
+Val cmdLine(Val x, Val y, Val x2, Val y2)
+{
+	ILI9163C_drawLine((int16_t) x, (int16_t) y, (int16_t) x2, (int16_t) y2, fgColor);
+	return (Val) 0;
+}
+
+Val cmdCircle(Val x0, Val y0, Val r)
+{
+	ILI9163C_drawCircle((int16_t) x0, (int16_t) y0, (int16_t) r, fgColor);
+	return (Val) 0;
+}
+
+
+Val cmdFilledCircle(Val x0, Val y0, Val r)
+{
+	ILI9163C_drawCircle((int16_t) x0, (int16_t) y0, (int16_t) r, fgColor);
+	return (Val) 0;
+}
+
+
 void addTinyScriptExtensions()
 {
-	TinyScript_Define("get", BUILTIN, (Val) cmdArrayGet);
-	TinyScript_Define("set", BUILTIN, (Val) cmdArraySet);
-	TinyScript_Define("alen", BUILTIN, (Val) cmdArrayLen);
-	TinyScript_Define("strcnt", BUILTIN, (Val) cmdStringCount);
-	TinyScript_Define("strcmp", BUILTIN, (Val) cmdStringCompare);
-	TinyScript_Define("strcopy", BUILTIN, (Val) cmdStringSet);
-	TinyScript_Define("strcat", BUILTIN, (Val) cmdStringCat);
-	TinyScript_Define("strccat", BUILTIN, (Val) cmdStringCatChar);
-	TinyScript_Define("strlen", BUILTIN, (Val) cmdStringLen);
-	TinyScript_Define("strcut", BUILTIN, (Val) cmdStringCut);
-	TinyScript_Define("strpos", BUILTIN, (Val) cmdStringPos);
-	TinyScript_Define("strUp", BUILTIN, (Val) cmdStringToUpper);
-	TinyScript_Define("strLow", BUILTIN, (Val) cmdStringToLower);
-	TinyScript_Define("not", BUILTIN, (Val) cmdNot);
-	TinyScript_Define("wait", BUILTIN, (Val) cmdWait);
-	TinyScript_Define("rgb", BUILTIN, (Val) cmdRGB);
-	TinyScript_Define("fg", BUILTIN, (Val) cmdSetFg);
-	TinyScript_Define("bg", BUILTIN, (Val) cmdSetBg);
-	TinyScript_Define("cls", BUILTIN, (Val) cmdFillScreen);
-	TinyScript_Define("dot", BUILTIN, (Val) cmdPoint);
-	TinyScript_Define("w", BUILTIN, (Val) cmdScreenWidth);
-	TinyScript_Define("h", BUILTIN, (Val) cmdScreenHeight);
-	TinyScript_Define("drawc", BUILTIN, (Val) cmdDrawChar);
-	TinyScript_Define("draw", BUILTIN, (Val) cmdDrawString);
-	TinyScript_Define("rect", BUILTIN, (Val) cmdDrawRect);
-	TinyScript_Define("frect", BUILTIN, (Val) cmdFillRect);
-	//TODO	TinyScript_Define("circle", BUILTIN, cmdDrawCircle);
-	//TODO	TinyScript_Define("fcircle", BUILTIN, cmdFilledCircle);
-	//TODO	TinyScript_Define("line", BUILTIN, cmdLine);
-	TinyScript_Define("hline", BUILTIN, (Val) cmdHLine);
-	TinyScript_Define("vline", BUILTIN, (Val) cmdVLine);
+	TinyScript_Define("get",		BUILTIN, (Val) cmdArrayGet);
+	TinyScript_Define("set",		BUILTIN, (Val) cmdArraySet);
+	TinyScript_Define("alen",		BUILTIN, (Val) cmdArrayLen);
+	TinyScript_Define("strcnt",		BUILTIN, (Val) cmdStringCount);
+	TinyScript_Define("strcmp",		BUILTIN, (Val) cmdStringCompare);
+	TinyScript_Define("strcopy",	BUILTIN, (Val) cmdStringSet);
+	TinyScript_Define("strcat",		BUILTIN, (Val) cmdStringCat);
+	TinyScript_Define("strccat",	BUILTIN, (Val) cmdStringCatChar);
+	TinyScript_Define("strlen",		BUILTIN, (Val) cmdStringLen);
+	TinyScript_Define("strcut",		BUILTIN, (Val) cmdStringCut);
+	TinyScript_Define("strpos",		BUILTIN, (Val) cmdStringPos);
+	TinyScript_Define("strUp",		BUILTIN, (Val) cmdStringToUpper);
+	TinyScript_Define("strLow",		BUILTIN, (Val) cmdStringToLower);
+	TinyScript_Define("not",		BUILTIN, (Val) cmdNot);
+	TinyScript_Define("wait",		BUILTIN, (Val) cmdWait);
+	TinyScript_Define("rgb",		BUILTIN, (Val) cmdRGB);
+	TinyScript_Define("fg",			BUILTIN, (Val) cmdSetFg);
+	TinyScript_Define("bg",			BUILTIN, (Val) cmdSetBg);
+	TinyScript_Define("cls",		BUILTIN, (Val) cmdFillScreen);
+	TinyScript_Define("dot",		BUILTIN, (Val) cmdPoint);
+	TinyScript_Define("w",			BUILTIN, (Val) cmdScreenWidth);
+	TinyScript_Define("h",			BUILTIN, (Val) cmdScreenHeight);
+	TinyScript_Define("drawc",		BUILTIN, (Val) cmdDrawChar);
+	TinyScript_Define("draw",		BUILTIN, (Val) cmdDrawString);
+	TinyScript_Define("rect",		BUILTIN, (Val) cmdDrawRect);
+	TinyScript_Define("frect",		BUILTIN, (Val) cmdFillRect);
+	TinyScript_Define("circle",		BUILTIN, (Val) cmdCircle);
+	TinyScript_Define("fcircle",	BUILTIN, (Val) cmdFilledCircle);
+	TinyScript_Define("line",		BUILTIN, (Val) cmdLine);
+	TinyScript_Define("hline",		BUILTIN, (Val) cmdHLine);
+	TinyScript_Define("vline",		BUILTIN, (Val) cmdVLine);
 }
