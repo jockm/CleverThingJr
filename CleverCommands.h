@@ -10,6 +10,7 @@
 
 #include "tinyscript.h"
 
+void addTinyScriptExtensions();
 
 
 #endif /* CLEVERCOMMANDS_H_ */
