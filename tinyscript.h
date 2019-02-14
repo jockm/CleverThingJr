@@ -34,11 +34,10 @@ typedef Byte *Ptr;
 // substrings directly from the script text, without having
 // to insert 0 into them
 typedef struct {
+	    uint16_t len_;
 #ifdef SMALL_PTRS
-    uint16_t len_;
     uint16_t ptr_;
 #else
-    unsigned len_;
     const char *ptr_;
 #endif
 } String;
@@ -48,12 +47,12 @@ typedef intptr_t Val;
 
 static inline unsigned StringGetLen(String s) { return (unsigned)s.len_; }
 static inline const char *StringGetPtr(String s) { return (const char *)(intptr_t)s.ptr_; }
-#ifdef SMALL_PTRS
 static inline void StringSetLen(String *s, unsigned len) { s->len_ = (uint16_t)len; }
-static inline void StringSetPtr(String *s, const char *ptr) { s->ptr_ = (uint16_t)(intptr_t)ptr; }
+
+#ifdef SMALL_PTRS
+	static inline void StringSetPtr(String *s, const char *ptr) { s->ptr_ = (uint16_t)(intptr_t)ptr; }
 #else
-static inline void StringSetLen(String *s, unsigned len) { s->len_ = len; }
-static inline void StringSetPtr(String *s, const char *ptr) { s->ptr_ = ptr; }
+	static inline void StringSetPtr(String *s, const char *ptr) { s->ptr_ = ptr; }
 #endif
 
 // symbols can take the following forms:
