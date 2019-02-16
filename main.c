@@ -156,6 +156,31 @@ static const char *lit_eventid[] =
     "Removed"
 };
 
+
+enum {
+	SCRIPT_INIT,
+	SCRIPT_TICK,
+	SCRIPT_MESSAGE,
+	SCRIPT_ACTION00,
+	SCRIPT_ACTION01,
+	SCRIPT_ACTION10,
+	SCRIPT_ACTION11,
+	SCRIPT_COUNT
+};
+
+
+static const char *scriptCall[] =
+{
+	"appletInit()",
+	"onTick()",
+	"onMessage()",
+	"onAction(0, 0)",
+	"onAction(0, 1)",
+	"onAction(1, 0)",
+	"onAction(1, 1)"
+};
+
+
 static ble_ancs_c_t                     m_ancs_c;                                            /**< Structure used to identify the Apple Notification Service Client. */
 static uint8_t                          m_apple_message_buffer[MESSAGE_BUFFER_SIZE];         /**< Message buffer for optional notify messages. */
 
@@ -179,7 +204,16 @@ volatile static bool                    pstorageBusy;
 
 static bool                             tsOutpuMode;
 static uint8_t                          tinyscriptArena[2048];
+volatile static bool                    scriptExecuting;
 
+
+///////////////////////////////////////////////////////////////////////
+// Prototypes
+
+void callScriptFunction(uint8_t idx);
+
+
+///////////////////////////////////////////////////////////////////////
 
 /**@brief Function for error handling, which is called when an error has occurred. 
  *
@@ -263,20 +297,14 @@ void onIosNotification(ble_ancs_c_evt_ios_notification_t *p_notice)
 	uartPrint((const uint8_t *)"\r\n");
 	uartPrint((const uint8_t *)"\r\n");
 	
-	displayIosMessage();
-}
-
-/**@brief Display iOS notification message contents
- *
- */
-static void displayIosMessage(void)
-{
-	// TODO combine with above
 	uartPrint((uint8_t *)display_title);
 	uartPrint((uint8_t *)"\r\n");
 	uartPrint((uint8_t *)display_message);
 	uartPrint((uint8_t *)"\r\n");
+
+	callScriptFunction(SCRIPT_MESSAGE);
 }
+
 
 /**@brief Copy notification attribute data to buffer
  *
@@ -345,6 +373,7 @@ static void leds_init(void)
 static void scriptTimerCallback(void *p_context)
 {
 	uartPrint("OnTimer event\r\n");
+	callScriptFunction(SCRIPT_TICK);
 }
 
 
@@ -681,23 +710,16 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
  */
 static void button_event_handler(uint8_t pin_no, uint8_t button_action)
 {
-    if (button_action == APP_BUTTON_PUSH)
-    {
-        switch (pin_no)
-        {
-            case BUTTON_A_PIN:
-            	uartPrint("Duck PIN BUTTON_A_PIN \r\n");
-              break;
+	if (button_action == APP_BUTTON_PUSH || button_action == APP_BUTTON_RELEASE) {
+		if(pin_no == BUTTON_A_PIN || pin_no == BUTTON_B_PIN) {
+			uint8_t msgIdx = SCRIPT_ACTION00;
 
-            case BUTTON_B_PIN:
-            	uartPrint("Duck PIN BUTTON_B_PIN \r\n");
-              break;
+			msgIdx += nrf_gpio_pin_read(BUTTON_A_PIN) ? 1 << 1 : 0;
+			msgIdx += nrf_gpio_pin_read(BUTTON_A_PIN) ? 1 << 0 : 0;
 
-            default:
-                APP_ERROR_HANDLER(pin_no);
-                break;
-        }
-    }
+			callScriptFunction(msgIdx);
+		}
+	}
 }
 
 
@@ -952,18 +974,72 @@ bool writeFileToPStorage(const char *fname)
 }
 
 
-void runStoredScript()
+bool runStoredScript()
 {
 	pstorage_handle_t blockHandle;
 
 	uint32_t errCode = pstorage_block_identifier_get(&pstorageHandle, 0, &blockHandle);
 	APP_ERROR_CHECK(errCode);
 
-	TinyScript_Run((char *) blockHandle.block_id, false, true);
-	uartPrint((char *) blockHandle.block_id);
+	if(((uint8_t *) blockHandle.block_id)[0] == 255) {
+		return false;
+	}
 
+	scriptExecuting = true;
+	TinyScript_Run((char *) blockHandle.block_id, false, true);
+	scriptExecuting = false;
+
+	return true;
 }
 
+
+void callScriptFunction(uint8_t idx)
+{
+	if(scriptExecuting) {
+		return;
+	}
+
+	scriptExecuting = true;
+
+	if(idx < SCRIPT_COUNT) {
+		TinyScript_Run(scriptCall[idx], false, true);
+	}
+
+	scriptExecuting = false;
+}
+
+
+uint8_t buildAppList()
+{
+	uint8_t ret = 0;
+
+	PFFDIR dir;
+	const char *path = "/";
+	FRESULT res = pf_opendir(&dir, path);
+	if(res != FR_OK) {
+		return ret;
+	}
+
+	FILINFO fno;
+
+	while(true) {
+		res = pf_readdir(&dir, &fno);
+		if (res != FR_OK || fno.fname[0] == 0) {
+			break;
+		}
+
+		if(fno.fattrib & AM_DIR) {
+			// Nothing
+		} else {
+			if(strstr(fno.fname, ".APP") != NULL) {
+				stringSet(ret, fno.fname);
+				++ret;
+			}
+		}
+	}
+
+	return ret;
+}
 /**@brief Function for application main entry.
  */
 int main(void)
@@ -1002,7 +1078,6 @@ int main(void)
     // Start execution.
     startAdvertising();
 
-
 	FRESULT res;
 	uartPrint("Duck Mounting...\r\n");
 	for(uint8_t i = 0; i < 10; ++i) {
@@ -1021,31 +1096,6 @@ int main(void)
 	uartPrint("----------------------------------\r");
 	uartPrint("Duck Main 1\r\n");
 	if(res == FR_OK) {
-#if 0
-		PFFDIR dir;
-		const char *path = "/";
-		   res = pf_opendir(&dir, path);
-		    if (res == FR_OK) {
-		    	FILINFO fno;
-
-		        for (;;) {
-		            res = pf_readdir(&dir, &fno);
-		            if (res != FR_OK || fno.fname[0] == 0) break;
-		            if (fno.fattrib & AM_DIR) {
-//		                sprintf(&path[i], "/%s", fno.fname);
-//		                res = scan_files(path);
-		                if (res != FR_OK) break;
-//		                path[i] = 0;
-		            } else {
-		            	uartPrint(path);
-		            	uartPrint("/");
-		            	uartPrint(fno.fname);
-		            	uartPrint("\r\n");
-		                printf("DDUCK %s/%s\n", path, fno.fname);
-		            }
-		        }
-		    }
-#endif
 	} else {
 		uartPrint("Error Mounting\r\n");
 	}
@@ -1061,22 +1111,13 @@ int main(void)
 	TinyScript_Init(tinyscriptArena, sizeof(tinyscriptArena));
 	addTinyScriptExtensions();
 
-	TinyScript_Run("print \"Hello TinyScript\"", false, true);
+	if(!runStoredScript()) {
+		// TODO there is no stored script
+	}
 
     // Enter main loop.
     for (;;)
     {
-//    	bool foo;
-//
-//    	app_button_is_pushed(8, &foo);
-//
-//		uartPrint("Duck button 8 ");
-//		uartPrint((foo ? "H" : "L"));
-//
-//    	app_button_is_pushed(10, &foo);
-//		uartPrint((foo ? "H" : "L"));
-//    	uartPrint("\r\n");
-
         powerManage();
     }
 
