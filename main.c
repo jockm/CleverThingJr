@@ -62,6 +62,8 @@
 #include "CleverData.h"
 #include "CleverCommands.h"
 
+#include "pig.h"
+
 #define uartPrint(s)                    simple_uart_putstring((const uint8_t *) s);
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 0                                                    /**< Include or not the service_changed characteristic. if not enabled, the server's database cannot be changed for the lifetime of the device*/
@@ -1121,8 +1123,9 @@ int main(void)
 	ILI9163C(26, 4, 3);
 	ILI9163C_start();
 	ILI9163C_init(RibbonBottom);
-	ILI9163C_clearScreen(rgb32To16(0xDD0000));
-	ILI9163C_drawString(5, 5, "Hello Duck 2", 0xFFFFFF, 0xDD0000);
+	ILI9163C_drawImage(pigImage);
+
+	nrf_delay_ms(200);
 
     // Start execution.
     startAdvertising();
