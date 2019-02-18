@@ -14,6 +14,7 @@ C_SOURCE_FILES += mmc.c
 C_SOURCE_FILES += pff.c
 C_SOURCE_FILES += tinyscript.c
 C_SOURCE_FILES += pig.c
+C_SOURCE_FILES += defaultScript.c
 
 
 # nRF51 SDK source

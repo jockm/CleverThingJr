@@ -62,6 +62,8 @@
 #include "CleverData.h"
 #include "CleverCommands.h"
 
+#include "defaultScript.h"
+
 #include "pig.h"
 
 #define uartPrint(s)                    simple_uart_putstring((const uint8_t *) s);
@@ -1041,6 +1043,12 @@ bool runStoredScript()
 }
 
 
+void runDefaultScript()
+{
+	TinyScript_Run(defaultScript, false, true);
+}
+
+
 void callScriptFunction(uint8_t idx)
 {
 	if(scriptExecuting) {
@@ -1164,7 +1172,7 @@ int main(void)
 	addTinyScriptExtensions();
 
 	if(!runStoredScript()) {
-		// TODO there is no stored script
+		runDefaultScript();
 	}
 
     // Enter main loop.
