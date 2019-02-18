@@ -376,25 +376,6 @@ static void leds_init(void)
  */
 static void scriptTimerCallback(void *p_context)
 {
-	int sec;
-	int min;
-	int hour;
-	int day;
-	int date;
-	int month;
-	int year;
-	int err;
-
-	err = DS1307_getTime(&sec, &min, &hour, &day, &date, &month, &year);
-
-	if(err) {
-		uartPrint("Duck Error getting time\r\n");
-	}
-
-	sprintf((char *)buf, "Duck time is %d:%d.%d %d/%d/%d\r\n", hour, min, sec, year, month, date);
-	uartPrint(buf);
-
-	uartPrint("OnTimer event\r\n");
 	callScriptFunction(SCRIPT_TICK);
 }
 
@@ -1045,6 +1026,7 @@ bool runStoredScript()
 
 void runDefaultScript()
 {
+	uartPrint(defaultScript);
 	TinyScript_Run(defaultScript, false, true);
 }
 
@@ -1058,6 +1040,10 @@ void callScriptFunction(uint8_t idx)
 	scriptExecuting = true;
 
 	if(idx < SCRIPT_COUNT) {
+		uartPrint("Duck Calling [");
+		uartPrint(scriptCall[idx]);
+		uartPrint("]\n");
+
 		TinyScript_Run(scriptCall[idx], false, true);
 	}
 
@@ -1166,14 +1152,21 @@ int main(void)
 
 	app_button_enable();
 
-	startTimers();
-
+	// Setup tinyscript
 	TinyScript_Init(tinyscriptArena, sizeof(tinyscriptArena));
 	addTinyScriptExtensions();
 
+	// Start script
+	// TODO check button to see if we should bypass stored script
 	if(!runStoredScript()) {
 		runDefaultScript();
 	}
+
+	// Run the script init
+	callScriptFunction(SCRIPT_INIT);
+
+	// Last minute setup
+	startTimers();
 
     // Enter main loop.
     for (;;)

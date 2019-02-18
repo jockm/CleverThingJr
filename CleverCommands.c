@@ -305,47 +305,47 @@ Val cmdDrawImage(Val sNo)
 
 void addTinyScriptExtensions()
 {
-	TinyScript_Define("get",		BUILTIN, (Val) cmdArrayGet);
-	TinyScript_Define("set",		BUILTIN, (Val) cmdArraySet);
-	TinyScript_Define("alen",		BUILTIN, (Val) cmdArrayLen);
+	TinyScript_Define("get",		CFUNC(1), (Val) cmdArrayGet);
+	TinyScript_Define("set",		CFUNC(2), (Val) cmdArraySet);
+	TinyScript_Define("alen",		CFUNC(0), (Val) cmdArrayLen);
 
-	TinyScript_Define("strcnt",		BUILTIN, (Val) cmdStringCount);
-	TinyScript_Define("strcmp",		BUILTIN, (Val) cmdStringCompare);
-	TinyScript_Define("strcopy",	BUILTIN, (Val) cmdStringSet);
-	TinyScript_Define("strcat",		BUILTIN, (Val) cmdStringCat);
-	TinyScript_Define("strccat",	BUILTIN, (Val) cmdStringCatChar);
-	TinyScript_Define("strlen",		BUILTIN, (Val) cmdStringLen);
-	TinyScript_Define("strcut",		BUILTIN, (Val) cmdStringCut);
-	TinyScript_Define("strpos",		BUILTIN, (Val) cmdStringPos);
-	TinyScript_Define("strUp",		BUILTIN, (Val) cmdStringToUpper);
-	TinyScript_Define("strLow",		BUILTIN, (Val) cmdStringToLower);
+	TinyScript_Define("strcnt",		CFUNC(0), (Val) cmdStringCount);
+	TinyScript_Define("strcmp",		CFUNC(2), (Val) cmdStringCompare);
+	TinyScript_Define("strcopy",	CFUNC(2), (Val) cmdStringSet);
+	TinyScript_Define("strcat",		CFUNC(2), (Val) cmdStringCat);
+	TinyScript_Define("strccat",	CFUNC(2), (Val) cmdStringCatChar);
+	TinyScript_Define("strlen",		CFUNC(0), (Val) cmdStringLen);
+	TinyScript_Define("strcut",		CFUNC(3), (Val) cmdStringCut);
+	TinyScript_Define("strpos",		CFUNC(2), (Val) cmdStringPos);
+	TinyScript_Define("strUp",		CFUNC(1), (Val) cmdStringToUpper);
+	TinyScript_Define("strLow",		CFUNC(1), (Val) cmdStringToLower);
 
-	TinyScript_Define("not",		BUILTIN, (Val) cmdNot);
+	TinyScript_Define("not",		CFUNC(1), (Val) cmdNot);
 
-	TinyScript_Define("wait",		BUILTIN, (Val) cmdWait);
+	TinyScript_Define("wait",		CFUNC(1), (Val) cmdWait);
 
-	TinyScript_Define("rgb",		BUILTIN, (Val) cmdRGB);
-	TinyScript_Define("fg",			BUILTIN, (Val) cmdSetFg);
-	TinyScript_Define("bg",			BUILTIN, (Val) cmdSetBg);
-	TinyScript_Define("cls",		BUILTIN, (Val) cmdFillScreen);
-	TinyScript_Define("dot",		BUILTIN, (Val) cmdPoint);
-	TinyScript_Define("w",			BUILTIN, (Val) cmdScreenWidth);
-	TinyScript_Define("h",			BUILTIN, (Val) cmdScreenHeight);
-	TinyScript_Define("drawc",		BUILTIN, (Val) cmdDrawChar);
-	TinyScript_Define("draw",		BUILTIN, (Val) cmdDrawString);
-	TinyScript_Define("rect",		BUILTIN, (Val) cmdDrawRect);
-	TinyScript_Define("frect",		BUILTIN, (Val) cmdFillRect);
-	TinyScript_Define("circle",		BUILTIN, (Val) cmdCircle);
-	TinyScript_Define("fcircle",	BUILTIN, (Val) cmdFilledCircle);
-	TinyScript_Define("line",		BUILTIN, (Val) cmdLine);
-	TinyScript_Define("hline",		BUILTIN, (Val) cmdHLine);
-	TinyScript_Define("vline",		BUILTIN, (Val) cmdVLine);
-	TinyScript_Define("image",		BUILTIN, (Val) cmdDrawImage);
+	TinyScript_Define("rgb",		CFUNC(3), (Val) cmdRGB);
+	TinyScript_Define("fg",			CFUNC(1), (Val) cmdSetFg);
+	TinyScript_Define("bg",			CFUNC(1), (Val) cmdSetBg);
+	TinyScript_Define("cls",		CFUNC(1), (Val) cmdFillScreen);
+	TinyScript_Define("dot",		CFUNC(2), (Val) cmdPoint);
+	TinyScript_Define("w",			CFUNC(0), (Val) cmdScreenWidth);
+	TinyScript_Define("h",			CFUNC(0), (Val) cmdScreenHeight);
+	TinyScript_Define("drawc",		CFUNC(3), (Val) cmdDrawChar);
+	TinyScript_Define("draw",		CFUNC(3), (Val) cmdDrawString);
+	TinyScript_Define("rect",		CFUNC(4), (Val) cmdDrawRect);
+	TinyScript_Define("frect",		CFUNC(4), (Val) cmdFillRect);
+	TinyScript_Define("circle",		CFUNC(3), (Val) cmdCircle);
+	TinyScript_Define("fcircle",	CFUNC(3), (Val) cmdFilledCircle);
+	TinyScript_Define("line",		CFUNC(4), (Val) cmdLine);
+	TinyScript_Define("hline",		CFUNC(3), (Val) cmdHLine);
+	TinyScript_Define("vline",		CFUNC(3), (Val) cmdVLine);
+	TinyScript_Define("image",		CFUNC(1), (Val) cmdDrawImage);
 
-	TinyScript_Define("i2cAddr",	BUILTIN, (Val) cmdI2CAddr);
-	TinyScript_Define("i2cWrite",	BUILTIN, (Val) cmdI2CWrite);
-	TinyScript_Define("i2CRead",	BUILTIN, (Val) cmdI2CRead);
+	TinyScript_Define("i2cAddr",	CFUNC(1), (Val) cmdI2CAddr);
+	TinyScript_Define("i2cWrite",	CFUNC(1), (Val) cmdI2CWrite);
+	TinyScript_Define("i2CRead",	CFUNC(0), (Val) cmdI2CRead);
 
-	TinyScript_Define("gettime",	BUILTIN, (Val) cmdGetTime);
-	TinyScript_Define("settime",	BUILTIN, (Val) cmdSetTime);
+	TinyScript_Define("gettime",	CFUNC(1), (Val) cmdGetTime);
+	TinyScript_Define("settime",	CFUNC(1), (Val) cmdSetTime);
 }
