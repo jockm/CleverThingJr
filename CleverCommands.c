@@ -346,6 +346,6 @@ void addTinyScriptExtensions()
 	TinyScript_Define("i2cWrite",	CFUNC(1), (Val) cmdI2CWrite);
 	TinyScript_Define("i2CRead",	CFUNC(0), (Val) cmdI2CRead);
 
-	TinyScript_Define("gettime",	CFUNC(1), (Val) cmdGetTime);
+	TinyScript_Define("time",		CFUNC(1), (Val) cmdGetTime);
 	TinyScript_Define("settime",	CFUNC(1), (Val) cmdSetTime);
 }
