@@ -662,13 +662,13 @@ void ILI9163C_fillCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color)
 
 
 
-void IILI9163C_drawBuf(uint8_t y)
+void IILI9163C_drawBufOnLine(uint8_t x, uint8_t y, uint8_t w)
 {
  	nrf_gpio_pin_clear(csPin); // Enable CS
 
- 	ILI9163C_setUpdateWindow(0, y, displayWidth, y);
+ 	ILI9163C_setUpdateWindow(x, y, x + w, y);
 
- 	ezSPIBulkWrite(buf, displayWidth * 2, NULL, 0);
+ 	ezSPIBulkWrite(buf, w, NULL, 0);
 
  	ILI9163C_writeCommand(CMD_WRITE_MEMORY_START);
 
