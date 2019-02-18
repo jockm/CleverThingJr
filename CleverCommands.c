@@ -5,6 +5,7 @@
 
 #include "ILI9163C.h"
 #include "ezI2C.h"
+#include "ds1307.h"
 
 
 static uint16_t fgColor;
@@ -239,6 +240,56 @@ Val cmdI2CRead()
 }
 
 
+Val cmdGetTime(Val idx)
+{
+	int sec;
+	int min;
+	int hour;
+	int day;
+	int date;
+	int month;
+	int year;
+
+	DS1307_getTime(&sec, &min, &hour, &day, &date, &month, &year);
+
+	int32_t i = (int32_t) idx;
+
+	arraySet(i++, sec);
+	arraySet(i++, min);
+	arraySet(i++, hour);
+	arraySet(i++, date);
+	arraySet(i++, month);
+	arraySet(i++, year);
+
+	return (Val) 0;
+}
+
+
+Val cmdSetTime(Val idx)
+{
+	int sec;
+	int min;
+	int hour;
+	int day;
+	int date;
+	int month;
+	int year;
+
+	int32_t i = (int32_t) idx;
+
+	sec = arrayGet(i++);
+	min = arrayGet(i++);
+	hour = arrayGet(i++);
+	day = arrayGet(i++);
+	date = arrayGet(i++);
+	month = arrayGet(i++);
+	year = arrayGet(i++);
+
+	DS1307_setTime(sec, min, hour, day, date, month, year);
+
+	return (Val) 0;
+}
+
 // TODO add time/timezone commands
 // TODO add load bitmap command
 
@@ -283,4 +334,7 @@ void addTinyScriptExtensions()
 	TinyScript_Define("i2cAddr",	BUILTIN, (Val) cmdI2CAddr);
 	TinyScript_Define("i2cWrite",	BUILTIN, (Val) cmdI2CWrite);
 	TinyScript_Define("i2CRead",	BUILTIN, (Val) cmdI2CRead);
+
+	TinyScript_Define("gettime",	BUILTIN, (Val) cmdGetTime);
+	TinyScript_Define("settime",	BUILTIN, (Val) cmdSetTime);
 }
