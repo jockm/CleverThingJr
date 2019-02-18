@@ -8,6 +8,9 @@
 #include "ds1307.h"
 
 
+bool displayImage(const char *fname);
+
+
 static uint16_t fgColor;
 static uint16_t bgColor;
 
@@ -290,7 +293,14 @@ Val cmdSetTime(Val idx)
 	return (Val) 0;
 }
 
-// TODO add time/timezone commands
+
+Val cmdDrawImage(Val sNo)
+{
+	displayImage(stringGet((int32_t) sNo));
+	return (Val) 0;
+}
+
+
 // TODO add load bitmap command
 
 void addTinyScriptExtensions()
@@ -330,6 +340,7 @@ void addTinyScriptExtensions()
 	TinyScript_Define("line",		BUILTIN, (Val) cmdLine);
 	TinyScript_Define("hline",		BUILTIN, (Val) cmdHLine);
 	TinyScript_Define("vline",		BUILTIN, (Val) cmdVLine);
+	TinyScript_Define("image",		BUILTIN, (Val) cmdDrawImage);
 
 	TinyScript_Define("i2cAddr",	BUILTIN, (Val) cmdI2CAddr);
 	TinyScript_Define("i2cWrite",	BUILTIN, (Val) cmdI2CWrite);

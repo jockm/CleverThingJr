@@ -960,6 +960,20 @@ bool displayImage(const char *fname)
 		return false;
 	}
 
+	uint16_t bytesRead;
+
+	for(uint8_t y = 0; y < ILI9163C_getHeight(); ++y) {
+		if(pf_read(buf, ILI9163C_getWidth() * 2, &bytesRead) != FR_OK) {
+			return false;
+		}
+
+		if(bytesRead == 0) {
+			return 0;
+		}
+
+		IILI9163C_drawBufOnLine(0, y, ILI9163C_getWidth());
+	}
+
 	return true;
 }
 
