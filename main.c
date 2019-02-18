@@ -954,6 +954,16 @@ void clearPStorage()
 }
 
 
+bool displayImage(const char *fname)
+{
+	if(pf_open(fname) != FR_OK) {
+		return false;
+	}
+
+	return true;
+}
+
+
 bool writeFileToPStorage(const char *fname)
 {
 	pstorage_handle_t blockHandle;
@@ -970,7 +980,11 @@ bool writeFileToPStorage(const char *fname)
 
 	while(true) {
 		if(pf_read(buf, PSTORAGE_BLOCKSIZE, &bytesRead) != FR_OK) {
-			// todo Handle read error
+			return false;
+		}
+
+		if(bytesRead == 0) {
+			return 0;
 		}
 
 		uint32_t errCode = pstorage_block_identifier_get(&pstorageHandle, blockNo, &blockHandle);
@@ -1058,6 +1072,8 @@ uint8_t buildAppList()
 
 	return ret;
 }
+
+
 /**@brief Function for application main entry.
  */
 int main(void)
