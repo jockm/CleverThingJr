@@ -89,7 +89,7 @@ int DS1307_write( int addr, int data ) {
     return(test >= 0 ? 0 : 1);
 }
 
-int DS1307_start_clock(void) {           // start the clock
+int DS1307_startClock(void) {           // start the clock
     int test = 0;
     int junk = 0;
 
@@ -101,7 +101,7 @@ int DS1307_start_clock(void) {           // start the clock
     return(test);                        //
 }
 
-int DS1307_stop_clock(void) {           // stop clock
+int DS1307_stopClock(void) {           // stop clock
     int test = 0;
     int junk = 0;
 
@@ -114,7 +114,7 @@ int DS1307_stop_clock(void) {           // stop clock
     return(test);                        //
 }
 
-int DS1307_twelve_hour(void) {           // set 12 hour mode
+int DS1307_twelveHour(void) {           // set 12 hour mode
     int test = 0;
     int junk = 0;
 
@@ -153,7 +153,7 @@ int DS1307_twelve_hour(void) {           // set 12 hour mode
     return(0);
 }
 
-int DS1307_twentyfour_hour(void) {     // set 24 hour mode
+int DS1307_twentyFourHour(void) {     // set 24 hour mode
     int test = 0;
     int junk = 0;
 
@@ -177,9 +177,9 @@ int DS1307_twentyfour_hour(void) {     // set 24 hour mode
     return(0);
 }
 
-int DS1307_settime(int sec, int min, int hour, int day, int date, int month, int year) {        // to set the current time and start clock
+int DS1307_setTime(int sec, int min, int hour, int day, int date, int month, int year) {        // to set the current time and start clock
     // sec = 0 to 59, min = 0 to 59, hours = 0 to 23 ( 24 hour mode only ), day = 1 to 7 ( day of week ), date = 1 to 31, month = 1 to 12, year 0 to 99 ( this is for 2000 to 2099)
-    DS1307_stop_clock();
+    DS1307_stopClock();
 
     if (1 == DS1307_hilow_check( 59, 0, sec)) {
         return(1);    // failed because recieved value is not in bounds
@@ -193,13 +193,13 @@ int DS1307_settime(int sec, int min, int hour, int day, int date, int month, int
         if (1 == (DS1307_write(DS1307_min,DS1307_dectobcd(min)))) return(1);    // failed to write for some reason
     }
 
-    if (1 == DS1307_twentyfour_hour()) return(1);                                      // failed to set 24 hour format
+    if (1 == DS1307_twentyFourHour()) return(1);                                      // failed to set 24 hour format
     if (1 == DS1307_hilow_check( 23, 0, hour)) {                                       // note setting 24 hour mode befor and after writing the hour value ensures 24 hour mode is set
         return(1);    // failed because recieved value is not in bounds
     } else {
         if (1 == (DS1307_write(DS1307_hour,DS1307_dectobcd(hour)))) return(1);    // failed to write for some reason
     }
-    if (1 == DS1307_twentyfour_hour()) return(1);                                      // failed to set 24 hour format
+    if (1 == DS1307_twentyFourHour()) return(1);                                      // failed to set 24 hour format
 
     if (1 == DS1307_hilow_check( 7, 1, day)) {
         return(1);    // failed because recieved value is not in bounds
@@ -225,11 +225,11 @@ int DS1307_settime(int sec, int min, int hour, int day, int date, int month, int
         if (1 == (DS1307_write(DS1307_year,DS1307_dectobcd(year)))) return(1);    // failed to write for some reason
     }
 
-    DS1307_start_clock();
+    DS1307_startClock();
     return (0);             // time is now set
 }
 
-int DS1307_gettime(int *sec, int *min, int *hour, int *day, int *date, int *month, int *year) { // to get the current time information
+int DS1307_getTime(int *sec, int *min, int *hour, int *day, int *date, int *month, int *year) { // to get the current time information
     // sec = 0 to 59, min = 0 to 59, hours = 0 to 23 ( 24 hour mode only ), day = 1 to 7 ( day of week ), date = 1 to 31, month = 1 to 12, year 0 to 99 ( this is for 2000 to 2099)
     if (1 == DS1307_read(DS1307_sec,sec)) return(1);       // failed to read for some reason
     *sec = (*sec & 0x7F );                                  // drop the clock start stop bit
@@ -241,11 +241,11 @@ int DS1307_gettime(int *sec, int *min, int *hour, int *day, int *date, int *mont
 
     if (1 == DS1307_read(DS1307_hour,hour)) return(1);     // failed to read for some reason
     if ((*hour & 0x40) == 0x40) {                           // if true then 12 hour mode is set currently  so change to 24 hour, read value, and return to 12 hour mode
-        if (1 == DS1307_twentyfour_hour()) return(1);          // failed to set 24 hour mode for some reason
+        if (1 == DS1307_twentyFourHour()) return(1);          // failed to set 24 hour mode for some reason
         if (1 == DS1307_read(DS1307_hour,hour)) return(1);     // failed to read for some reason
         *hour = (*hour & 0x3F );                                // drop bit 7 & 6 they are not used for 24 hour mode reading
         *hour = DS1307_bcdtodec( *hour);                       // bcd is now dec value
-        if (1 == DS1307_twelve_hour()) return(1);              // failed to return to 12 hour mode for some reason
+        if (1 == DS1307_twelveHour()) return(1);              // failed to return to 12 hour mode for some reason
     } else {                                                     // in 24 hour mode already so just read the hour value
         if (1 == DS1307_read(DS1307_hour,hour)) return(1);    // failed to read for some reason
         *hour = (*hour & 0x3F );                                // drop bit 7 & 6 they are not used for 24 hour mode reading
