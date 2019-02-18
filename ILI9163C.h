@@ -49,7 +49,7 @@
  	void ILI9163C_drawGlyph(uint8_t x, uint8_t y, const uint8_t *glyph, uint16_t fgColor, uint16_t bgColor);
  	void ILI9163C_drawGlyph16(uint8_t x, uint8_t y, glyph g);
  	void ILI9163C_drawGlyphString(uint8_t x, uint8_t y, const uint8_t glyphs[][8], const char *str, uint16_t fgColor, uint16_t bgColor);
- 	//void ILI9163C_drawString(uint8_t x, uint8_t y, const char *str, uint16_t fgColor, uint16_t bgColor);
+ 	void IILI9163C_drawBuf(uint8_t y);
  	void ILI9163C_drawImage(const uint8_t *img);
 
 

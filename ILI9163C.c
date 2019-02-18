@@ -662,6 +662,20 @@ void ILI9163C_fillCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color)
 
 
 
+void IILI9163C_drawBuf(uint8_t y)
+{
+ 	nrf_gpio_pin_clear(csPin); // Enable CS
+
+ 	ILI9163C_setUpdateWindow(0, y, displayWidth, y);
+
+ 	ezSPIBulkWrite(buf, displayWidth * 2, NULL, 0);
+
+ 	ILI9163C_writeCommand(CMD_WRITE_MEMORY_START);
+
+ 	nrf_gpio_pin_set(csPin); // Disable CS
+}
+
+
  void ILI9163C_drawImage(const uint8_t *img)
  {
  	nrf_gpio_pin_clear(csPin); // Enable CS
@@ -673,9 +687,10 @@ void ILI9163C_fillCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color)
 
  	nrf_gpio_pin_set(dcPin);
 
- 	for(uint16_t i = 0; i < displayHeight * displayWidth * 2; ++i) {
- 		ezSPIWrite(img[i]);
- 	}
+ 	ezSPIBulkWrite((uint8_t *) img, displayWidth * 2 * displayHeight, NULL, 0);
+// 	for(uint16_t i = 0; i < displayHeight * displayWidth * 2; ++i) {
+// 		ezSPIWrite(img[i]);
+// 	}
 
  	nrf_gpio_pin_set(csPin); // Disable CS
  }
