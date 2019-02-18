@@ -372,6 +372,24 @@ static void leds_init(void)
  */
 static void scriptTimerCallback(void *p_context)
 {
+	int sec;
+	int min;
+	int hour;
+	int day;
+	int date;
+	int month;
+	int year;
+	int err;
+
+	err = DS1307_getTime(&sec, &min, &hour, &day, &date, &month, &year);
+
+	if(err) {
+		uartPrint("Duck Error getting time\r\n");
+	}
+
+	sprintf((char *)buf, "Duck time is %d:%d.%d %d/%d/%d\r\n", hour, min, sec, year, month, date);
+	uartPrint(buf);
+
 	uartPrint("OnTimer event\r\n");
 	callScriptFunction(SCRIPT_TICK);
 }
@@ -1064,6 +1082,7 @@ int main(void)
 	ezSPIInit(2, 0, 1, 31);
 
 	DS1307_init();
+	DS1307_startClock();
 
 	// Turn on LCD Backlight
 	nrf_gpio_cfg_output(9);
