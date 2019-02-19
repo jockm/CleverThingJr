@@ -2,6 +2,7 @@
 #include "CleverData.h"
 
 #include <nrf_delay.h>
+#include <stdio.h>
 
 #include "ILI9163C.h"
 #include "ezI2C.h"
@@ -33,6 +34,20 @@ Val cmdArrayLen()
 	return (Val) arrayLen();
 }
 
+
+Val cmdStringPrint(Val sNo)
+{
+	const char *s = stringGet(sNo);
+
+	if(s != NULL) {
+		while(*s != '\0') {
+			tsOutChar(*s);
+			tsOutChar('\n');
+			++s;
+		}
+	}
+	return (Val) 0;
+}
 
 Val cmdStringSet(Val sDest, Val sSource)
 {
@@ -309,6 +324,7 @@ void addTinyScriptExtensions()
 	TinyScript_Define("set",		CFUNC(2), (Val) cmdArraySet);
 	TinyScript_Define("alen",		CFUNC(0), (Val) cmdArrayLen);
 
+	TinyScript_Define("sprint",		CFUNC(1), (Val) cmdStringPrint);
 	TinyScript_Define("strcnt",		CFUNC(0), (Val) cmdStringCount);
 	TinyScript_Define("strcmp",		CFUNC(2), (Val) cmdStringCompare);
 	TinyScript_Define("strcopy",	CFUNC(2), (Val) cmdStringSet);

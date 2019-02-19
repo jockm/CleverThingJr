@@ -11,6 +11,11 @@
 #include "CleverData.h"
 
 
+////////////////////////////////
+#define uartPrint(s)                    simple_uart_putstring((const uint8_t *) s);
+void simple_uart_putstring(const uint8_t *);
+////////////////////////////////
+
 #ifndef _swap_int16_t
 #	define _swap_int16_t(a, b) { int16_t t = a; a = b; b = t; }
 #endif
@@ -708,7 +713,9 @@ void IILI9163C_drawBufOnLine(uint8_t x, uint8_t y, uint8_t w)
  {
  	nrf_gpio_pin_clear(dcPin);
 
- 	ezSPIWrite(cmd);
+ 	if(ezSPIWrite(cmd) < 0) {
+ 		// todo
+ 	}
  }
 
  void ILI9163C_writeParam(uint8_t param)

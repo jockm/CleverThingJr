@@ -162,6 +162,7 @@ static const char *lit_eventid[] =
 
 
 enum {
+	SCRIPT_NONE,
 	SCRIPT_INIT,
 	SCRIPT_TICK,
 	SCRIPT_MESSAGE,
@@ -175,6 +176,7 @@ enum {
 
 static const char *scriptCall[] =
 {
+	"",
 	"appletInit()",
 	"onTick()",
 	"onMessage()",
@@ -209,6 +211,7 @@ volatile static bool                    pstorageBusy;
 static bool                             tsOutpuMode;
 static uint8_t                          tinyscriptArena[2048];
 volatile static bool                    scriptExecuting;
+volatile static uint8_t                 currentCall;
 
 
 ///////////////////////////////////////////////////////////////////////
@@ -367,7 +370,6 @@ static void leds_init(void)
 {
 	// Nothing
 }
-
 
 /**@brief Function for the OnTimer event
  *
@@ -1030,8 +1032,17 @@ void runDefaultScript()
 	TinyScript_Run(defaultScript, false, true);
 }
 
-
 void callScriptFunction(uint8_t idx)
+{
+	if(scriptExecuting) {
+		return;
+	}
+
+	currentCall = idx;
+}
+
+
+void runScriptFunction(uint8_t idx)
 {
 	if(scriptExecuting) {
 		return;
@@ -1040,10 +1051,6 @@ void callScriptFunction(uint8_t idx)
 	scriptExecuting = true;
 
 	if(idx < SCRIPT_COUNT) {
-		uartPrint("Duck Calling [");
-		uartPrint(scriptCall[idx]);
-		uartPrint("]\n");
-
 		TinyScript_Run(scriptCall[idx], false, true);
 	}
 
@@ -1163,7 +1170,7 @@ int main(void)
 	}
 
 	// Run the script init
-	callScriptFunction(SCRIPT_INIT);
+	runScriptFunction(SCRIPT_INIT);
 
 	// Last minute setup
 	startTimers();
@@ -1172,6 +1179,10 @@ int main(void)
     for (;;)
     {
         powerManage();
+    	if(currentCall) {
+    		runScriptFunction(currentCall);
+    		currentCall = SCRIPT_NONE;
+    	}
     }
 
 }

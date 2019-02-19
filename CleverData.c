@@ -130,7 +130,7 @@ void stringCatChar(int32_t sDest, char c)
 	}
 
 	strings[sDest][catPos] = c;
-	strings[sDest][catPos + 1] = c;
+	strings[sDest][catPos + 1] = '\0';
 }
 
 

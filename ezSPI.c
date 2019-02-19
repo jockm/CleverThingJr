@@ -62,6 +62,7 @@ int16_t ezSPIBulkWrite(uint8_t *txBuf, uint16_t txLen, uint8_t *rxBuf, uint16_t 
 
 	uint32_t err_code = spi_master_send_recv(EZSPI_MASTER_INSTANCE, txBuf, txLen, rxBuf, rxLen);
 	if(err_code != NRF_SUCCESS) {
+		ezSPIBusy = false;
 		return -1;
 	}
 
