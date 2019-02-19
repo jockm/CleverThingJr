@@ -144,7 +144,7 @@ Val cmdSetFg(Val c)
 
 Val cmdSetBg(Val c)
 {
-	fgColor = (uint16_t) c;
+	bgColor = (uint16_t) c;
 	return (Val) 0;
 }
 
@@ -330,7 +330,7 @@ void addTinyScriptExtensions()
 	TinyScript_Define("strcopy",	CFUNC(2), (Val) cmdStringSet);
 	TinyScript_Define("strcat",		CFUNC(2), (Val) cmdStringCat);
 	TinyScript_Define("strccat",	CFUNC(2), (Val) cmdStringCatChar);
-	TinyScript_Define("strlen",		CFUNC(0), (Val) cmdStringLen);
+	TinyScript_Define("strlen",		CFUNC(1), (Val) cmdStringLen);
 	TinyScript_Define("strcut",		CFUNC(3), (Val) cmdStringCut);
 	TinyScript_Define("strpos",		CFUNC(2), (Val) cmdStringPos);
 	TinyScript_Define("strUp",		CFUNC(1), (Val) cmdStringToUpper);
