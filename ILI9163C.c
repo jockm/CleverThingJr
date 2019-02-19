@@ -1,4 +1,6 @@
 #include <stdlib.h>
+#include <string.h>
+
 
 #include "nrf_gpio.h"
 #include "nrf_delay.h"
@@ -12,8 +14,9 @@
 
 
 ////////////////////////////////
-#define uartPrint(s)                    simple_uart_putstring((const uint8_t *) s);
-void simple_uart_putstring(const uint8_t *);
+//#include <stdio.h>
+//#define uartPrint(s)                    simple_uart_putstring((const uint8_t *) s);
+//void simple_uart_putstring(const uint8_t *);
 ////////////////////////////////
 
 #ifndef _swap_int16_t
@@ -298,63 +301,64 @@ void simple_uart_putstring(const uint8_t *);
  	ILI9163C_drawGlyphString((uint8_t) x, (uint8_t) y, font8x8_basic, str, rgb32To16(fg), rgb32To16(bg));
  }
 
- void ILI9163C_fillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint32_t c)
+ void ILI9163C_fillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t c)
  {
- 	uint16_t rgb = rgb32To16(c);
-
- 	for(uint8_t i = 0; i < w; ++i) {
- 		ILI9163C_drawVLine(x + i, y, h, rgb);
+ 	if(h > w) {
+ 	 	for(uint8_t i = 0; i < w; ++i) {
+ 	 		ILI9163C_drawVLine(x + i, y, h, c);
+ 	 	}
+ 	} else {
+ 	 	for(uint8_t i = 0; i < h; ++i) {
+ 	 		ILI9163C_drawHLine(x, y + i, w, c);
+ 	 	}
  	}
  }
 
 
  void ILI9163C_drawRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t c)
  {
- 	uint16_t rgb = rgb32To16(c);
+ 	ILI9163C_drawHLine(x, y, w, c);
+ 	ILI9163C_drawHLine(x, y + h, w, c);
 
- 	ILI9163C_drawHLine(x, y, w, rgb);
- 	ILI9163C_drawHLine(x, y + h, w, rgb);
-
- 	ILI9163C_drawVLine(x, y, h, rgb);
- 	ILI9163C_drawVLine(x + w, y, h, rgb);
+ 	ILI9163C_drawVLine(x, y, h, c);
+ 	ILI9163C_drawVLine(x + w, y, h, c);
 
  }
 
+
  void ILI9163C_drawHLine(uint16_t x, uint16_t y, uint16_t w, uint16_t c)
  {
- 	//TODO Clipping window
- 	nrf_gpio_pin_clear(csPin); // Enable CS
+	 	nrf_gpio_pin_clear(csPin); // Enable CS
 
- 	ILI9163C_setUpdateWindow(x, y, x + w, y);
+	 	ILI9163C_setUpdateWindow(x, y, x + w, y);
 
- 	ILI9163C_writeCommand(CMD_WRITE_MEMORY_START);
+	 	ILI9163C_writeCommand(CMD_WRITE_MEMORY_START);
 
- 	uint8_t idx = 0;
+	 	uint16_t idx = 0;
 
- 	for(uint8_t i = 0; i < w; ++i) {
- 			buf[idx++] = c >> 8;
- 			buf[idx++] = c & 0xff;
- 	}
+	 	for(uint8_t i = 0; i < w; ++i) {
+	 			buf[idx++] = c >> 8;
+	 			buf[idx++] = c & 0xff;
+	 	}
 
- 	nrf_gpio_pin_set(dcPin);
+	 	nrf_gpio_pin_set(dcPin);
 
- 	ezSPIBulkWrite(buf, idx, NULL, 0);
+	 	ezSPIBulkWrite(buf, idx, NULL, 0);
+//	 	ezSPIBulkWrite(buf, displayWidth*2, NULL, 0);
 
- 	nrf_gpio_pin_set(csPin); // Disable CS
+	 	nrf_gpio_pin_set(csPin); // Disable CS
  }
 
 
  void ILI9163C_drawVLine(uint8_t x, uint8_t y, uint8_t h, uint16_t c)
  {
- 	//TODO Clipping window
-
  	nrf_gpio_pin_clear(csPin); // Enable CS
 
  	ILI9163C_setUpdateWindow(x, y, x, y + h);
 
  	ILI9163C_writeCommand(CMD_WRITE_MEMORY_START);
 
- 	uint8_t idx = 0;
+ 	uint16_t idx = 0;
 
  	for(uint8_t i = 0; i < h; ++i) {
  			buf[idx++] = c >> 8;
@@ -371,8 +375,6 @@ void simple_uart_putstring(const uint8_t *);
 
  void ILI9163C_clearScreen(uint16_t color)
  {
- 	//TODO Clipping window
-
  	for(uint16_t i = 0; i < lineBufferSize; i += 2) {
  		buf[i] = color >> 8;
  		buf[i + 1] = color & 0xff;
@@ -437,7 +439,7 @@ void simple_uart_putstring(const uint8_t *);
  	//TODO Clipping window
 
  	nrf_gpio_pin_clear(csPin); // Enable CS
- 	ILI9163C_setUpdateWindow(x, y, x + 1, y + 1);
+ 	ILI9163C_setUpdateWindow(x, y, x, y);
 
  	// Draw the point
  	ILI9163C_writeCommand(CMD_WRITE_MEMORY_START);
