@@ -290,15 +290,15 @@
  	return displayHeight;
  }
 
- void ILI9163C_drawChar(uint16_t xPos, uint16_t yPos, uint8_t c, uint32_t fg, uint32_t bg)
+ void ILI9163C_drawChar(uint16_t xPos, uint16_t yPos, uint8_t c, uint16_t fg, uint16_t bg)
  {
  	ILI9163C_drawGlyph((uint8_t) xPos, (uint8_t) yPos, font8x8_basic[c], rgb32To16(fg), rgb32To16(bg));
  }
 
 
- void ILI9163C_drawString(uint8_t x, uint8_t y, const char *str, uint32_t fg, uint32_t bg)
+ void ILI9163C_drawString(uint8_t x, uint8_t y, const char *str, uint16_t fg, uint16_t bg)
  {
- 	ILI9163C_drawGlyphString((uint8_t) x, (uint8_t) y, font8x8_basic, str, rgb32To16(fg), rgb32To16(bg));
+ 	ILI9163C_drawGlyphString((uint8_t) x, (uint8_t) y, font8x8_basic, str, fg, bg);
  }
 
  void ILI9163C_fillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t c)
@@ -344,7 +344,6 @@
 	 	nrf_gpio_pin_set(dcPin);
 
 	 	ezSPIBulkWrite(buf, idx, NULL, 0);
-//	 	ezSPIBulkWrite(buf, displayWidth*2, NULL, 0);
 
 	 	nrf_gpio_pin_set(csPin); // Disable CS
  }
@@ -410,8 +409,6 @@
 
  void ILI9163C_clearRows(uint8_t startY, uint8_t endY, uint16_t color)
  {
- 	//TODO Clipping window
-
  	for(uint16_t i = 0; i < lineBufferSize; i += 2) {
  		buf[i] = color >> 8;
  		buf[i + 1] = color & 0xff;
@@ -436,8 +433,6 @@
 
  void ILI9163C_drawPoint(uint8_t x, uint8_t y, uint16_t color)
  {
- 	//TODO Clipping window
-
  	nrf_gpio_pin_clear(csPin); // Enable CS
  	ILI9163C_setUpdateWindow(x, y, x, y);
 
@@ -450,8 +445,6 @@
  void ILI9163C_drawGlyph(uint8_t x, uint8_t y, const uint8_t *glyph,
  		uint16_t fgColor, uint16_t bgColor)
  {
- 	//TODO Clipping window
-
  	nrf_gpio_pin_clear(csPin); // Enable CS
 
  	ILI9163C_setUpdateWindow(x, y, x + 7, y + 7);
@@ -481,8 +474,6 @@
 
  void ILI9163C_drawGlyph16(uint8_t x, uint8_t y, glyph g)
  {
- 	//TODO Clipping window
-
  	nrf_gpio_pin_clear(csPin); // Enable CS
 
  	ILI9163C_setUpdateWindow(x, y, x + 15, y + 15);
@@ -501,12 +492,47 @@
  void ILI9163C_drawGlyphString(uint8_t x, uint8_t y, const uint8_t glyphs[][8],
  		const char *str, uint16_t fgColor, uint16_t bgColor)
  {
- 	while(*str != 0) {
- 		ILI9163C_drawGlyph(x, y, glyphs[(int) *str], fgColor, bgColor);
+	 uint16_t len = strlen(str); //todo clip length
 
- 		x += 8;
- 		++str;
- 	}
+	 if(len > displayWidth / 8) {
+		len = displayWidth / 8;
+	 }
+
+	nrf_gpio_pin_clear(csPin); // Enable CS
+
+	ILI9163C_setUpdateWindow(x, y, x + len * 8, y + 7);
+	ILI9163C_writeCommand(CMD_WRITE_MEMORY_START);
+
+ 	nrf_gpio_pin_set(dcPin);
+
+
+	for(uint8_t row = 0; row < 8; ++row) {
+		uint16_t idx = 0;
+		const char     *s = str;
+
+		ILI9163C_setUpdateWindow(x, y + row, x + len * 8, y + row);
+		ILI9163C_writeCommand(CMD_WRITE_MEMORY_START);
+
+	 	nrf_gpio_pin_set(dcPin);
+
+		for(uint8_t col = 0; col < len; ++col) {
+			const uint8_t *g = glyphs[(int) *s];
+			uint8_t        gRow = g[row];
+
+			for(uint8_t bit = 0; bit < 8; ++bit) {
+				uint16_t c = gRow & (1 << bit) ? fgColor : bgColor;
+
+				buf[idx++] = c >> 8;
+				buf[idx++] = c & 0xff;
+
+			}
+ 			++s;
+		}
+
+	 	ezSPIBulkWrite(buf, idx, NULL, 0);
+	}
+
+ 	nrf_gpio_pin_set(csPin); // Disable CS
  }
 
 
@@ -715,9 +741,7 @@ void IILI9163C_drawBufOnLine(uint8_t x, uint8_t y, uint8_t w)
  {
  	nrf_gpio_pin_clear(dcPin);
 
- 	if(ezSPIWrite(cmd) < 0) {
- 		// todo
- 	}
+ 	ezSPIWrite(cmd);
  }
 
  void ILI9163C_writeParam(uint8_t param)
@@ -738,6 +762,9 @@ void IILI9163C_drawBufOnLine(uint8_t x, uint8_t y, uint8_t w)
  void ILI9163C_setUpdateWindow(uint8_t startX, uint8_t startY, uint8_t endX,
  		uint8_t endY)
  {
+#if 1
+	nrf_gpio_pin_clear(dcPin);
+
  	// Set the X Bounds
  	ILI9163C_writeCommand(CMD_SET_COLUMN_ADDRESS);
  	ILI9163C_writeParam(0x00);
@@ -751,6 +778,26 @@ void IILI9163C_drawBufOnLine(uint8_t x, uint8_t y, uint8_t w)
  	ILI9163C_writeParam(startY);
  	ILI9163C_writeParam(0x00);
  	ILI9163C_writeParam(endY);
+#else
+	nrf_gpio_pin_clear(dcPin);
+	uint8_t bPos = 0;
+
+ 	// Set the X Bounds
+ 	buf[bPos++] = CMD_SET_COLUMN_ADDRESS;
+ 	buf[bPos++] = 0x00;
+ 	buf[bPos++] = startX;
+ 	buf[bPos++] = 0x00;
+ 	buf[bPos++] = endX;
+
+ 	// Set the Y Bounds
+ 	buf[bPos++] = CMD_SET_PAGE_ADDRESS;
+ 	buf[bPos++] = 0x00;
+ 	buf[bPos++] = startY;
+ 	buf[bPos++] = 0x00;
+ 	buf[bPos++] = endY;
+
+ 	ezSPIBulkWrite(buf, bPos, NULL, 0);
+#endif
  }
 
 

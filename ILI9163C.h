@@ -32,8 +32,8 @@
  	void ILI9163C_fillScreen(uint16_t c);
  	uint16_t  ILI9163C_getWidth();
  	uint16_t ILI9163C_getHeight();
- 	void ILI9163C_drawChar(uint16_t xPos, uint16_t yPos, uint8_t c, uint32_t fg, uint32_t bg);
- 	void ILI9163C_drawString(uint8_t x, uint8_t y, const char *str, uint32_t fg, uint32_t bg);
+ 	void ILI9163C_drawChar(uint16_t xPos, uint16_t yPos, uint8_t c, uint16_t fg, uint16_t bg);
+ 	void ILI9163C_drawString(uint8_t x, uint8_t y, const char *str, uint16_t fg, uint16_t bg);
  	void ILI9163C_fillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t c);
  	void ILI9163C_drawRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t c);
  	void ILI9163C_drawHLine(uint16_t x, uint16_t y, uint16_t w, uint16_t c);
