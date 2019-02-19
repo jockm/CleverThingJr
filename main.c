@@ -720,7 +720,7 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
 			uint8_t msgIdx = SCRIPT_ACTION00;
 
 			msgIdx += nrf_gpio_pin_read(BUTTON_A_PIN) ? 1 << 1 : 0;
-			msgIdx += nrf_gpio_pin_read(BUTTON_A_PIN) ? 1 << 0 : 0;
+			msgIdx += nrf_gpio_pin_read(BUTTON_B_PIN) ? 1 << 0 : 0;
 
 			callScriptFunction(msgIdx);
 		}
