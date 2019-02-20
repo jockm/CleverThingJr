@@ -381,19 +381,7 @@
 
  	nrf_gpio_pin_clear(csPin); // Enable CS
 
- 	// Set the column address to 0-127
- 	ILI9163C_writeCommand(CMD_SET_COLUMN_ADDRESS);
- 	ILI9163C_writeParam(0x00);
- 	ILI9163C_writeParam(0x00);
- 	ILI9163C_writeParam(0x00);
- 	ILI9163C_writeParam(0x7f);
-
- 	// Set the page address to 0-127
- 	ILI9163C_writeCommand(CMD_SET_PAGE_ADDRESS);
- 	ILI9163C_writeParam(0x00);
- 	ILI9163C_writeParam(0x00);
- 	ILI9163C_writeParam(0x00);
- 	ILI9163C_writeParam(0x7f);
+ 	ILI9163C_setUpdateWindow(0, 0, 127, 127);
 
  	// Plot the pixels
  	ILI9163C_writeCommand(CMD_WRITE_MEMORY_START);
@@ -768,16 +756,16 @@ void IILI9163C_drawBufOnLine(uint8_t x, uint8_t y, uint8_t w)
  	// Set the X Bounds
  	ILI9163C_writeCommand(CMD_SET_COLUMN_ADDRESS);
  	ILI9163C_writeParam(0x00);
- 	ILI9163C_writeParam(startX);
+ 	ILI9163C_writeParam(startX + 2);
  	ILI9163C_writeParam(0x00);
- 	ILI9163C_writeParam(endX);
+ 	ILI9163C_writeParam(endX + 2);
 
  	// Set the Y Bounds
  	ILI9163C_writeCommand(CMD_SET_PAGE_ADDRESS);
  	ILI9163C_writeParam(0x00);
- 	ILI9163C_writeParam(startY);
+ 	ILI9163C_writeParam(startY + 3);
  	ILI9163C_writeParam(0x00);
- 	ILI9163C_writeParam(endY);
+ 	ILI9163C_writeParam(endY + 3);
 #else
 	nrf_gpio_pin_clear(dcPin);
 	uint8_t bPos = 0;
@@ -785,16 +773,16 @@ void IILI9163C_drawBufOnLine(uint8_t x, uint8_t y, uint8_t w)
  	// Set the X Bounds
  	buf[bPos++] = CMD_SET_COLUMN_ADDRESS;
  	buf[bPos++] = 0x00;
- 	buf[bPos++] = startX;
+ 	buf[bPos++] = startX + 2;
  	buf[bPos++] = 0x00;
- 	buf[bPos++] = endX;
+ 	buf[bPos++] = endX + 2;
 
  	// Set the Y Bounds
  	buf[bPos++] = CMD_SET_PAGE_ADDRESS;
  	buf[bPos++] = 0x00;
- 	buf[bPos++] = startY;
+ 	buf[bPos++] = startY + 3;
  	buf[bPos++] = 0x00;
- 	buf[bPos++] = endY;
+ 	buf[bPos++] = endY + 3;
 
  	ezSPIBulkWrite(buf, bPos, NULL, 0);
 #endif
