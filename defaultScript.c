@@ -86,7 +86,7 @@ func hilight(idx, show) {
 		str " "
 	}
 
-	draw(1, 20 + idx * 9, 0)	
+	draw(1, 18 + idx * 9, 0)	
 }
 
 
@@ -106,13 +106,13 @@ func appletInit() {
 	print "Duck app count ", get(0)
 	if(get(0) = 0) {
 		str "No Apps Found"
-		draw(15, 20, 0)
+		draw(15, 60, 0)
 		return
 	}
 
 	var idx = 0;
 	while(idx < get(0)) {
-		draw(10, 20 + idx * 9, idx + 1)
+		draw(10, 18 + idx * 9, idx + 1)
 		idx = idx + 1
 	}
 
