@@ -3,13 +3,23 @@
 
 #include <nrf_delay.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 
 #include "ILI9163C.h"
 #include "ezI2C.h"
 #include "ds1307.h"
 
 
+///////////////////////////////////////////////////////////////////////
+// TODO there should be a header file for these
+extern bool isSystemScript;
+
 bool displayImage(const char *fname);
+bool writeFileToPStorageAndReset(const char *fname);
+///////////////////////////////////////////////////////////////////////
+
 
 
 static uint16_t fgColor;
@@ -42,9 +52,9 @@ Val cmdStringPrint(Val sNo)
 	if(s != NULL) {
 		while(*s != '\0') {
 			tsOutChar(*s);
-			tsOutChar('\n');
 			++s;
 		}
+		tsOutChar('\n');
 	}
 	return (Val) 0;
 }
@@ -205,14 +215,14 @@ Val cmdPoint(Val x, Val y)
 
 Val cmdHLine(Val x, Val y, Val w, Val z)
 {
-	ILI9163C_drawHLine((uint16_t) x, (uint16_t) y, (uint16_t) z, fgColor);
+	ILI9163C_drawHLine((uint16_t) x, (uint16_t) y, (uint16_t) w, fgColor);
 	return (Val) 0;
 }
 
 
-Val cmdVLine(Val x, Val y, Val w, Val z)
+Val cmdVLine(Val x, Val y, Val h, Val z)
 {
-	ILI9163C_drawVLine((uint16_t) x, (uint16_t) y, (uint16_t) z, fgColor);
+	ILI9163C_drawVLine((uint16_t) x, (uint16_t) y, (uint16_t) h, fgColor);
 	return (Val) 0;
 }
 
@@ -316,7 +326,116 @@ Val cmdDrawImage(Val sNo)
 }
 
 
-// TODO add load bitmap command
+
+// Based on code from https://www.geeksforgeeks.org/implement-itoa/
+static void reverse(char str[], int length)
+{
+    int start = 0;
+    int end = length -1;
+    while (start < end)
+    {
+    	char t = *(str+start);
+        *(str+start) = *(str+end);
+        *(str+end) = t;
+        start++;
+        end--;
+    }
+}
+
+// Based on code from https://www.geeksforgeeks.org/implement-itoa/
+static char* itoa(int num, char* str, int base)
+{
+    int i = 0;
+    bool isNegative = false;
+
+    /* Handle 0 explicitely, otherwise empty string is printed for 0 */
+    if (num == 0)
+    {
+        str[i++] = '0';
+        str[i] = '\0';
+        return str;
+    }
+
+    // In standard itoa(), negative numbers are handled only with
+    // base 10. Otherwise numbers are considered unsigned.
+    if (num < 0 && base == 10)
+    {
+        isNegative = true;
+        num = -num;
+    }
+
+    // Process individual digits
+    while (num != 0)
+    {
+        int rem = num % base;
+        str[i++] = (rem > 9)? (rem-10) + 'a' : rem + '0';
+        num = num/base;
+    }
+
+    // If number is negative, append '-'
+    if (isNegative)
+        str[i++] = '-';
+
+    str[i] = '\0'; // Append string terminator
+
+    // Reverse the string
+    reverse(str, i);
+
+    return str;
+}
+
+Val cmdPad(Val sNo, Val v, Val l, Val p)
+{
+	int32_t len = (int32_t) l;
+	char    pad = (char) p;
+	char   *s = (char *) buf + 100;
+
+	if(len > 100) {
+		len = 100;
+	}
+
+	itoa((int32_t) v, s, 10);
+
+	int32_t slen = strlen(s);
+	while(slen < len) {
+		--s;
+		*s = pad;
+		++slen;
+	}
+
+	stringSet((int32_t) sNo, s);
+	return (Val) 0;
+}
+
+
+Val cmdSRand(Val seed)
+{
+	srand((uint32_t) seed);
+	return (Val) 0;
+}
+
+
+Val cmdRand()
+{
+	Val ret = (Val) rand();
+	return ret;
+}
+
+
+Val cmdSysLoad(Val sNo)
+{
+	if(!isSystemScript) {
+		return (Val) 1;
+	}
+
+	buf[0] = '\0';
+	stringSet(sNo, (char *) buf);
+
+	writeFileToPStorageAndReset((char *)buf);
+	return (Val) 0;
+}
+
+
 
 void addTinyScriptExtensions()
 {
@@ -332,9 +451,10 @@ void addTinyScriptExtensions()
 	TinyScript_Define("strccat",	CFUNC(2), (Val) cmdStringCatChar);
 	TinyScript_Define("strlen",		CFUNC(1), (Val) cmdStringLen);
 	TinyScript_Define("strcut",		CFUNC(3), (Val) cmdStringCut);
-	TinyScript_Define("strpos",		CFUNC(2), (Val) cmdStringPos);
-	TinyScript_Define("strUp",		CFUNC(1), (Val) cmdStringToUpper);
-	TinyScript_Define("strLow",		CFUNC(1), (Val) cmdStringToLower);
+	TinyScript_Define("indexof",	CFUNC(2), (Val) cmdStringPos);
+	TinyScript_Define("toupper",	CFUNC(1), (Val) cmdStringToUpper);
+	TinyScript_Define("tolower",	CFUNC(1), (Val) cmdStringToLower);
+	TinyScript_Define("pad",		CFUNC(4), (Val) cmdPad);
 
 	TinyScript_Define("not",		CFUNC(1), (Val) cmdNot);
 
@@ -362,6 +482,11 @@ void addTinyScriptExtensions()
 	TinyScript_Define("i2cWrite",	CFUNC(1), (Val) cmdI2CWrite);
 	TinyScript_Define("i2CRead",	CFUNC(0), (Val) cmdI2CRead);
 
-	TinyScript_Define("time",		CFUNC(1), (Val) cmdGetTime);
+	TinyScript_Define("gettime",	CFUNC(1), (Val) cmdGetTime);
 	TinyScript_Define("settime",	CFUNC(1), (Val) cmdSetTime);
+
+	TinyScript_Define("srand",		CFUNC(1), (Val) cmdSRand);
+	TinyScript_Define("rnd",		CFUNC(0), (Val) cmdRand);
+
+	TinyScript_Define("SYSLOAD",	CFUNC(1), (Val) cmdSysLoad);
 }
