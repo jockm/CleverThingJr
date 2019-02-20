@@ -128,6 +128,7 @@
 #define BUTTON_A_PIN					10
 #define BUTTON_B_PIN					8
 
+#define MAX_APPS                        14													 /**< Maximum number of APPS that can be displayed in the app list */
 
 typedef enum
 {
@@ -212,6 +213,7 @@ static bool                             tsOutpuMode;
 static uint8_t                          tinyscriptArena[2048];
 volatile static bool                    scriptExecuting;
 volatile static uint8_t                 currentCall;
+bool                                    isSystemScript;
 
 
 ///////////////////////////////////////////////////////////////////////
@@ -1007,6 +1009,14 @@ bool writeFileToPStorage(const char *fname)
 }
 
 
+bool writeFileToPStorageAndReset(const char *fname)
+{
+	// TODO handle error
+	writeFileToPStorage(fname);
+    NVIC_SystemReset();
+}
+
+
 bool runStoredScript()
 {
 	pstorage_handle_t blockHandle;
@@ -1028,7 +1038,6 @@ bool runStoredScript()
 
 void runDefaultScript()
 {
-	uartPrint(defaultScript);
 	TinyScript_Run(defaultScript, false, true);
 }
 
@@ -1081,7 +1090,15 @@ uint8_t buildAppList()
 			// Nothing
 		} else {
 			if(strstr(fno.fname, ".APP") != NULL) {
-				stringSet(ret, fno.fname);
+				uartPrint("Duck found\n");
+				uartPrint("Duck App: ");uartPrint(fno.fname);uartPrint("\n");
+
+				if(ret >= MAX_APPS) {
+					break;
+				}
+
+				// Since string 0 is used as a temp string, we start the list at 1
+				stringSet(ret + 1, fno.fname);
 				++ret;
 			}
 		}
@@ -1117,6 +1134,8 @@ int main(void)
 	DS1307_init();
 	DS1307_startClock();
 
+	// TODO seed random
+
 	// Turn on LCD Backlight
 	nrf_gpio_cfg_output(9);
 	nrf_gpio_pin_set(9);
@@ -1139,16 +1158,12 @@ int main(void)
 			break;
 		}
 
-		nrf_delay_ms(100);
+		nrf_delay_ms(50);
 		uartPrint("Duck Mounting (again)...\r\n");
 	}
 
-//	ILI9163C_drawString(5, 15, "Hello Duck 3", 0xFFFFFF, 0xDD0000);
-
-	uartPrint("Duck mounted\r\n");
-	uartPrint("----------------------------------\r");
-	uartPrint("Duck Main 1\r\n");
 	if(res == FR_OK) {
+		uartPrint("Duck mounted\r\n");
 	} else {
 		uartPrint("Error Mounting\r\n");
 	}
@@ -1165,8 +1180,16 @@ int main(void)
 
 	// Start script
 	// TODO check button to see if we should bypass stored script
+
+	isSystemScript = false;
+
 	if(!runStoredScript()) {
+		uint8_t fileCount = buildAppList();
+		arraySet(0, fileCount);
+
+		isSystemScript = true;
 		runDefaultScript();
+		isSystemScript = false;
 	}
 
 	// Run the script init
