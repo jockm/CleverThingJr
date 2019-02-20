@@ -1090,9 +1090,6 @@ uint8_t buildAppList()
 			// Nothing
 		} else {
 			if(strstr(fno.fname, ".APP") != NULL) {
-				uartPrint("Duck found\n");
-				uartPrint("Duck App: ");uartPrint(fno.fname);uartPrint("\n");
-
 				if(ret >= MAX_APPS) {
 					break;
 				}
