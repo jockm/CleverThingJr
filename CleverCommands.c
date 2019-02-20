@@ -12,12 +12,19 @@
 #include "ds1307.h"
 
 
+////////////////////////////////
+#define uartPrint(s)                    simple_uart_putstring((const uint8_t *) s);
+void simple_uart_putstring(const uint8_t *);
+////////////////////////////////
+
+
 ///////////////////////////////////////////////////////////////////////
 // TODO there should be a header file for these
 extern bool isSystemScript;
 
 bool displayImage(const char *fname);
 bool writeFileToPStorageAndReset(const char *fname);
+void clearPStorageAndReset();
 ///////////////////////////////////////////////////////////////////////
 
 
@@ -313,9 +320,10 @@ Val cmdSetTime(Val idx)
 	month = arrayGet(i++);
 	year = arrayGet(i++);
 
-	DS1307_setTime(sec, min, hour, day, date, month, year);
 
-	return (Val) 0;
+	int e = DS1307_setTime(sec, min, hour, day, date, month, year);
+
+	return (Val) e;
 }
 
 
@@ -436,6 +444,16 @@ Val cmdSysLoad(Val sNo)
 }
 
 
+Val cmdSysUnLoad()
+{
+	if(!isSystemScript) {
+		return (Val) 1;
+	}
+
+	clearPStorageAndReset();
+	return (Val) 0;
+}
+
 
 void addTinyScriptExtensions()
 {
@@ -446,7 +464,7 @@ void addTinyScriptExtensions()
 	TinyScript_Define("sprint",		CFUNC(1), (Val) cmdStringPrint);
 	TinyScript_Define("strcnt",		CFUNC(0), (Val) cmdStringCount);
 	TinyScript_Define("strcmp",		CFUNC(2), (Val) cmdStringCompare);
-	TinyScript_Define("strcopy",	CFUNC(2), (Val) cmdStringSet);
+	TinyScript_Define("strset",		CFUNC(2), (Val) cmdStringSet);
 	TinyScript_Define("strcat",		CFUNC(2), (Val) cmdStringCat);
 	TinyScript_Define("strccat",	CFUNC(2), (Val) cmdStringCatChar);
 	TinyScript_Define("strlen",		CFUNC(1), (Val) cmdStringLen);
@@ -489,4 +507,5 @@ void addTinyScriptExtensions()
 	TinyScript_Define("rnd",		CFUNC(0), (Val) cmdRand);
 
 	TinyScript_Define("SYSLOAD",	CFUNC(1), (Val) cmdSysLoad);
+	TinyScript_Define("SYSUNLOAD",	CFUNC(0), (Val) cmdSysUnLoad);
 }
