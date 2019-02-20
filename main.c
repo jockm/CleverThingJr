@@ -128,7 +128,7 @@
 #define BUTTON_A_PIN					10
 #define BUTTON_B_PIN					8
 
-#define MAX_APPS                        14													 /**< Maximum number of APPS that can be displayed in the app list */
+#define MAX_APPS                        11													 /**< Maximum number of APPS that can be displayed in the app list */
 
 typedef enum
 {
