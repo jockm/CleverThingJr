@@ -103,7 +103,6 @@ func appletInit() {
 
 	displayTime()
 
-	print "Duck app count ", get(0)
 	if(get(0) = 0) {
 		str "No Apps Found"
 		draw(15, 60, 0)
