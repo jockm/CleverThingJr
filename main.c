@@ -1183,7 +1183,8 @@ int main(void)
 
 	isSystemScript = false;
 
-	if(!runStoredScript()) {
+	bool forceDefault = nrf_gpio_pin_read(BUTTON_B_PIN);
+	if(forceDefault || !runStoredScript()) {
 		uint8_t fileCount = buildAppList();
 		arraySet(0, fileCount);
 
