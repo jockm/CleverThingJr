@@ -1012,8 +1012,19 @@ bool writeFileToPStorage(const char *fname)
 bool writeFileToPStorageAndReset(const char *fname)
 {
 	// TODO handle error
-	writeFileToPStorage(fname);
-    NVIC_SystemReset();
+	bool ret = writeFileToPStorage(fname);
+	if(ret) {
+		NVIC_SystemReset();
+	}
+
+    return ret;
+}
+
+
+void clearPStorageAndReset()
+{
+	clearPStorage();
+	NVIC_SystemReset();
 }
 
 
