@@ -1132,6 +1132,34 @@ uint8_t buildAppList()
 }
 
 
+void seedRandom()
+{
+	int sec;
+	int min;
+	int hour;
+	int day;
+	int date;
+	int month;
+	int year;
+	int seed;
+
+	DS1307_getTime(&sec, &min, &hour, &day, &date, &month, &year);
+
+	// I wish I could remember where I got this seed calculation from
+	// but I was told it was theoretically better than a simple seconds
+	// calculation.  It may not be, but at least it creates a number
+	// that will be different most times it is calculated.
+
+	seed  = year * 1000000;
+	seed += month * 10000;
+	seed += date * 1000;
+	seed += hour * 360;
+	seed += min * 60;
+	seed += sec;
+
+	srand(seed);
+}
+
 /**@brief Function for application main entry.
  */
 int main(void)
@@ -1203,8 +1231,6 @@ int main(void)
 	addTinyScriptExtensions();
 
 	// Start script
-	// TODO check button to see if we should bypass stored script
-
 	isSystemScript = false;
 
 	bool forceDefault = nrf_gpio_pin_read(BUTTON_B_PIN);
