@@ -436,10 +436,7 @@ Val cmdSysLoad(Val sNo)
 		return (Val) 1;
 	}
 
-	buf[0] = '\0';
-	stringSet(sNo, (char *) buf);
-
-	writeFileToPStorageAndReset((char *)buf);
+	writeFileToPStorageAndReset(stringGet((int32_t) sNo));
 	return (Val) 0;
 }
 

@@ -74,7 +74,7 @@ func onAction(a, b) {
 	}
 
 	if(b) {
-		SYSLOAD(currApp)
+		SYSLOAD(currApp + 1)
 	}
 }
 

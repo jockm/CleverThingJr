@@ -929,7 +929,6 @@ void clearPStorage()
 		pstorage_handle_t blockHandle;
 		pstorageBusy = true;
 
-		char b[100];sprintf(b, "Duck clearing @%d\r\n", i);uartPrint(b);
 		uint32_t errCode = pstorage_block_identifier_get(&pstorageHandle, i,
 				&blockHandle);
 		APP_ERROR_CHECK(errCode);
@@ -982,12 +981,13 @@ bool writeFileToPStorage(const char *fname)
 	uint16_t bytesRead;
 
 	while(true) {
+		memset(buf, 0, PSTORAGE_BLOCKSIZE);
 		if(pf_read(buf, PSTORAGE_BLOCKSIZE, &bytesRead) != FR_OK) {
 			return false;
 		}
 
 		if(bytesRead == 0) {
-			return 0;
+			return true;
 		}
 
 		uint32_t errCode = pstorage_block_identifier_get(&pstorageHandle, blockNo, &blockHandle);
@@ -1004,6 +1004,22 @@ bool writeFileToPStorage(const char *fname)
 		++blockNo;
 	}
 
+	// On the off chance that the file is perfectly divisible bt 256,
+	// we write a final block filled with zeros
+	if(blockNo < PSTORAGE_BLOCKCOUNT) {
+		memset(buf, 0, PSTORAGE_BLOCKSIZE);
+
+		uint32_t errCode = pstorage_block_identifier_get(&pstorageHandle, blockNo, &blockHandle);
+		APP_ERROR_CHECK(errCode);
+
+		pstorageBusy = true;
+		errCode = pstorage_store(&blockHandle, buf, PSTORAGE_BLOCKSIZE, 0);
+		APP_ERROR_CHECK(errCode);
+
+		while(pstorageBusy) {
+			powerManage();
+		}
+	}
 
 	return true;
 }
@@ -1198,7 +1214,6 @@ int main(void)
 
 		isSystemScript = true;
 		runDefaultScript();
-		isSystemScript = false;
 	}
 
 	// Run the script init

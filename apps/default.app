@@ -6,9 +6,9 @@ var currApp = 0
 func displayTime() {
 	var am = 1;
 
-	#fg(bgColor)
-	#frect(0, 0, 128, 10)
-	#fg(fgColor)
+	fg(bgColor)
+	frect(0, 0, 128, 10)
+	fg(fgColor)
 	
 	gettime(10)
 
@@ -67,7 +67,7 @@ func onAction(a, b) {
 	}
 
 	if(b) {
-		SYSLOAD(currApp)
+		SYSLOAD(currApp + 1)
 	}
 }
 
