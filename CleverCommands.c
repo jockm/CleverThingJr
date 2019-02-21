@@ -25,6 +25,10 @@ extern bool isSystemScript;
 bool displayImage(const char *fname);
 bool writeFileToPStorageAndReset(const char *fname);
 void clearPStorageAndReset();
+
+const char *getMsgEventIdText(int32_t idx);
+const char *getMsgCatIdText(int32_t idx);
+
 ///////////////////////////////////////////////////////////////////////
 
 
@@ -453,6 +457,34 @@ Val cmdSysUnLoad()
 }
 
 
+Val cmdGetMsgEventIdText(Val sNo, Val idx)
+{
+	const char *s = getMsgEventIdText((int32_t) idx);
+
+	if(s == NULL) {
+		stringSet((int32_t) sNo, "");
+	} else {
+		stringSet((int32_t) sNo, s);
+	}
+
+	return (Val) 0;
+}
+
+
+Val cmdGetMsgCatIdText(Val sNo, Val idx)
+{
+	const char *s = getMsgCatIdText((int32_t) idx);
+
+	if(s == NULL) {
+		stringSet((int32_t) sNo, "");
+	} else {
+		stringSet((int32_t) sNo, s);
+	}
+
+	return (Val) 0;
+}
+
+
 void addTinyScriptExtensions()
 {
 	TinyScript_Define("get",		CFUNC(1), (Val) cmdArrayGet);
@@ -471,6 +503,9 @@ void addTinyScriptExtensions()
 	TinyScript_Define("toupper",	CFUNC(1), (Val) cmdStringToUpper);
 	TinyScript_Define("tolower",	CFUNC(1), (Val) cmdStringToLower);
 	TinyScript_Define("pad",		CFUNC(4), (Val) cmdPad);
+
+	TinyScript_Define("evttext",	CFUNC(2), (Val) cmdGetMsgEventIdText);
+	TinyScript_Define("cattext",	CFUNC(2), (Val) cmdGetMsgCatIdText);
 
 	TinyScript_Define("not",		CFUNC(1), (Val) cmdNot);
 

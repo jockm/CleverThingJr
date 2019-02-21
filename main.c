@@ -281,13 +281,37 @@ static void setupAppleNotifications(void)
     APP_ERROR_CHECK(err_code);
 }
 
-static void displayIosMessage(void);
+
+
+const char *getMsgEventIdText(int32_t idx)
+{
+	int32_t count =  sizeof(lit_eventid) / sizeof(lit_eventid[0]);
+	if(idx < 0 || idx >= count) {
+		return NULL;
+	}
+
+	return lit_eventid[idx];
+}
+
+
+const char *getMsgCatIdText(int32_t idx)
+{
+	int32_t count =  sizeof(lit_catid) / sizeof(lit_catid[0]);
+	if(idx < 0 || idx >= count) {
+		return NULL;
+	}
+
+	return lit_catid[idx];
+}
+
+
 
 /**@brief Display an iOS notification
  *
  */
 void onIosNotification(ble_ancs_c_evt_ios_notification_t *p_notice)
 {
+#if DEBUG_ANCS
 	// todo turn into script notification
 	char buffer[100];
 
@@ -310,6 +334,24 @@ void onIosNotification(ble_ancs_c_evt_ios_notification_t *p_notice)
 	uartPrint((uint8_t *)"\r\n");
 	uartPrint((uint8_t *)display_message);
 	uartPrint((uint8_t *)"\r\n");
+#endif
+
+
+
+	int32_t msgIdx = arrayLen() - 4;
+
+	uint32_t msgUID = p_notice->notification_uid[0] << 24
+				| p_notice->notification_uid[1] << 16
+				| p_notice->notification_uid[2] << 8
+				| p_notice->notification_uid[3];
+
+	arraySet(msgIdx++, msgUID);
+	arraySet(msgIdx++, p_notice->event_id);
+	arraySet(msgIdx++, p_notice->category_id);
+
+	int32_t msgStrIdx = stringCount() - 3;
+	stringSet(msgStrIdx++, display_title);
+	stringSet(msgStrIdx++, display_message);
 
 	callScriptFunction(SCRIPT_MESSAGE);
 }
