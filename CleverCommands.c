@@ -292,6 +292,7 @@ Val cmdGetTime(Val idx)
 	arraySet(i++, sec);
 	arraySet(i++, min);
 	arraySet(i++, hour);
+	arraySet(i++, day);
 	arraySet(i++, date);
 	arraySet(i++, month);
 	arraySet(i++, year);
