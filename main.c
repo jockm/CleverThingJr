@@ -1186,7 +1186,7 @@ int main(void)
 	DS1307_init();
 	DS1307_startClock();
 
-	// TODO seed random
+	seedRandom();
 
 	// Turn on LCD Backlight
 	nrf_gpio_cfg_output(9);
