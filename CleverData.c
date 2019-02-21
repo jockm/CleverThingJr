@@ -10,9 +10,9 @@
 
 #include "CleverData.h"
 
-#define NUMSTRINGS  20
+#define NUMSTRINGS  22
 #define STRINGWIDTH 21
-#define ARRAYLEN    100
+#define ARRAYLEN    103
 
 
 uint8_t buf[BUFSIZE];
