@@ -20,6 +20,14 @@ int32_t array[ARRAYLEN];
 char    strings[NUMSTRINGS][STRINGWIDTH];
 
 
+void cleverDataInit()
+{
+	memset(buf, 0, sizeof(buf));
+	memset((uint8_t *)array, 0, sizeof(array) * sizeof(array[0]));
+	memset((uint8_t *)strings, 0, sizeof(strings) * sizeof(strings[0]));
+}
+
+
 int32_t arrayGet(int32_t idx)
 {
 	int32_t ret = 0;
@@ -30,6 +38,7 @@ int32_t arrayGet(int32_t idx)
 
 	return ret;
 }
+
 
 void arraySet(int32_t idx, int32_t val)
 {
@@ -47,7 +56,7 @@ int32_t arrayLen()
 
 int32_t stringCount()
 {
-	return stringCount();
+	return NUMSTRINGS;
 }
 
 

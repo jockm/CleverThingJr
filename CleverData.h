@@ -9,6 +9,9 @@
 	extern uint8_t buf[BUFSIZE];
 
 
+	void cleverDataInit();
+
+
 	int32_t arrayGet(int32_t idx);
 	void arraySet(int32_t idx, int32_t val);
 	int32_t arrayLen();

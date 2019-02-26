@@ -4,6 +4,11 @@
  *  Created on: Feb 18, 2019
  *      Author: jock
  */
+#if 0
+const char *defaultScript = R"(
+# put script in testing here
+)";
+#else
 const char *defaultScript = R"(
 var fgColor = 0xFFFF
 var bgColor = 255
@@ -118,4 +123,5 @@ func appletInit() {
 	hilight(currApp, 1)
 }
 )";
+#endif
 

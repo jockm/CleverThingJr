@@ -85,7 +85,7 @@
 #define DISPLAY_MESSAGE_BUTTON_PIN      BUTTON_5                                             /**< Button used to display message contents */
 #define SCROLL_ONE_BUTTON_PIN           BUTTON_6                                             /**< Button used to scroll one character */
 
-#define DEVICE_NAME                     "ANCC"                                               /**< Name of device. Will be included in the advertising data. */
+#define DEVICE_NAME                     "CTJr"                                                                                                                                                /**< Name of device. Will be included in the advertising data. */
 #define APP_ADV_INTERVAL                40                                                   /**< The advertising interval (in units of 0.625 ms. This value corresponds to 25 ms). */
 #define APP_ADV_INTERVAL_SLOW           3200                                                 /**< Slow advertising interval (in units of 0.625 ms. This value corresponds to 2 seconds). */
 #define APP_ADV_TIMEOUT_IN_SECONDS      180                                                  /**< The advertising timeout in units of seconds. */
@@ -337,8 +337,7 @@ void onIosNotification(ble_ancs_c_evt_ios_notification_t *p_notice)
 #endif
 
 
-
-	int32_t msgIdx = arrayLen() - 4;
+	int32_t msgIdx = arrayLen() - 3;
 
 	uint32_t msgUID = p_notice->notification_uid[0] << 24
 				| p_notice->notification_uid[1] << 16
@@ -349,7 +348,7 @@ void onIosNotification(ble_ancs_c_evt_ios_notification_t *p_notice)
 	arraySet(msgIdx++, p_notice->event_id);
 	arraySet(msgIdx++, p_notice->category_id);
 
-	int32_t msgStrIdx = stringCount() - 3;
+	int32_t msgStrIdx = stringCount() - 2;
 	stringSet(msgStrIdx++, display_title);
 	stringSet(msgStrIdx++, display_message);
 
@@ -422,7 +421,7 @@ static void leds_init(void)
  */
 static void scriptTimerCallback(void *p_context)
 {
-	callScriptFunction(SCRIPT_TICK);
+	//JEMJEMcallScriptFunction(SCRIPT_TICK);
 }
 
 
@@ -672,6 +671,10 @@ static void device_manager_init(void)
     // Clear all bonded centrals if the "delete all bonds" button is pushed.
     err_code = app_button_is_pushed(BUTTON_A_PIN, &init_data.clear_persistent_data);
     APP_ERROR_CHECK(err_code);
+
+    if(init_data.clear_persistent_data) {
+    	uartPrint("~CTJ~ Deleting all bonds...\n");
+    }
 
     err_code = dm_init(&init_data);
     APP_ERROR_CHECK(err_code);
@@ -966,7 +969,7 @@ void tsOutChar(int c) {
 
 void clearPStorage()
 {
-	uartPrint("Duck Clear PStorage\r\n");
+	uartPrint("~CTJ~ Clear PStorage\r\n");
 	for (uint8_t i = 0; i < PSTORAGE_BLOCKCOUNT; i += 1024 / PSTORAGE_BLOCKSIZE) {
 		pstorage_handle_t blockHandle;
 		pstorageBusy = true;
@@ -980,7 +983,7 @@ void clearPStorage()
 			powerManage();
 		}
 	}
-	uartPrint("Duck Clear PStorage done\r\n");
+	uartPrint("~CTJ~ Clear PStorage done\r\n");
 }
 
 
@@ -1207,6 +1210,7 @@ void seedRandom()
 int main(void)
 {
     configureGpio();
+//    cleverDataInit();
 
     // Initialize.
     app_trace_init();
@@ -1245,21 +1249,18 @@ int main(void)
     startAdvertising();
 
 	FRESULT res;
-	uartPrint("Duck Mounting...\r\n");
 	for(uint8_t i = 0; i < 10; ++i) {
+		uartPrint("~CTJ~ Mounting (again)...\r\n");
 		 res = pf_mount(&sdCard);
 		if(res == FR_OK) {
 			break;
 		}
 
 		nrf_delay_ms(50);
-		uartPrint("Duck Mounting (again)...\r\n");
 	}
 
-	if(res == FR_OK) {
-		uartPrint("Duck mounted\r\n");
-	} else {
-		uartPrint("Error Mounting\r\n");
+	if(res != FR_OK) {
+		uartPrint("~CTJ~ Error Mounting\r\n");
 	}
 
 
