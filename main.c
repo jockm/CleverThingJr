@@ -421,7 +421,7 @@ static void leds_init(void)
  */
 static void scriptTimerCallback(void *p_context)
 {
-	//JEMJEMcallScriptFunction(SCRIPT_TICK);
+	callScriptFunction(SCRIPT_TICK);
 }
 
 
