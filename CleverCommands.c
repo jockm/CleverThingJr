@@ -254,7 +254,7 @@ Val cmdCircle(Val x0, Val y0, Val r)
 
 Val cmdFilledCircle(Val x0, Val y0, Val r)
 {
-	ILI9163C_drawCircle((int16_t) x0, (int16_t) y0, (int16_t) r, fgColor);
+	ILI9163C_fillCircle((int16_t) x0, (int16_t) y0, (int16_t) r, fgColor);
 	return (Val) 0;
 }
 
