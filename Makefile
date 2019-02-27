@@ -80,4 +80,12 @@ C_SOURCE_PATHS += $(SDK_PATH)Source/app_common
 C_SOURCE_PATHS += $(SDK_PATH)Source/sd_common
 
 
+flash-mac:
+	$(NRFJPROG) wipe
+	$(NRFJPROG) program --softdevice $(SOFTDEVICE) --code $(PROJECT).hex
+
+flash-win:
+	nrfjprog -e --programs $(SOFTDEVICE)
+	nrfjprog --program $(PROJECT).hex -r
+	
 include $(SDK_PATH)Source/templates/gcc/Makefile.common
