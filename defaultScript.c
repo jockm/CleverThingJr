@@ -5,8 +5,9 @@
  *      Author: jock
  */
 #if 0
+// Put a script for testing here and change the #if 0 to #if 1
 const char *defaultScript = R"(
-# put script in testing here
+
 )";
 #else
 const char *defaultScript = R"(
