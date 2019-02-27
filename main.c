@@ -224,6 +224,35 @@ void callScriptFunction(uint8_t idx);
 
 ///////////////////////////////////////////////////////////////////////
 
+
+#define BOOTLOADER_DFU_START 0xB1
+//Rigado suggests using a long 128-bit reset key
+#define DISCONNET_REASON BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION
+
+static void bootloaderStart(uint16_t conn_handle)
+{
+	uartPrint("~CTJ~ Entering Bootloader\n");
+	uint32_t err_code;
+
+	ILI9163C_clearScreen(0);
+	ILI9163C_drawString(0, 53, "Firmware Updater", 0xFFFF, 0);
+	ILI9163C_drawString(20, 63, "Starting...", 0xFFFF, 0);
+
+	/* Force disconnect, disable softdevice, and then reset */
+	sd_ble_gap_disconnect(conn_handle, DISCONNET_REASON );
+
+	//The below requires at least bootloader 3.1
+	err_code = sd_power_gpregret_set(BOOTLOADER_DFU_START);
+	APP_ERROR_CHECK(err_code);
+
+	sd_softdevice_disable();
+	nrf_delay_us(5 * 1000);
+
+	//reset system to start the bootloader
+	NVIC_SystemReset();
+}
+
+
 /**@brief Function for error handling, which is called when an error has occurred. 
  *
  * @warning This handler is an example only and does not fit a final product. You need to analyze
@@ -667,15 +696,19 @@ static void device_manager_init(void)
     err_code = pstorage_register(&param, &pstorageHandle);
     APP_ERROR_CHECK(err_code);
 
-
     // Clear all bonded centrals if the "delete all bonds" button is pushed.
+#if 1
+    bool deleteBonds = nrf_gpio_pin_read(BUTTON_A_PIN);
+    init_data.clear_persistent_data = deleteBonds;
+#else
     err_code = app_button_is_pushed(BUTTON_A_PIN, &init_data.clear_persistent_data);
     APP_ERROR_CHECK(err_code);
+#endif
 
     if(init_data.clear_persistent_data) {
     	uartPrint("~CTJ~ Deleting all bonds...\n");
     }
-
+    
     err_code = dm_init(&init_data);
     APP_ERROR_CHECK(err_code);
     
@@ -697,7 +730,15 @@ static void device_manager_init(void)
     APP_ERROR_CHECK(err_code);
 }
 
-
+void checkStartBootloader(uint16_t handle)
+{
+	//Once we connect, check if A & B are pressed to enter bootloader
+	bool aPressed = nrf_gpio_pin_read(BUTTON_A_PIN);
+	bool bPressed = nrf_gpio_pin_read(BUTTON_B_PIN);
+	if (aPressed && bPressed) {
+		bootloaderStart(handle);
+	}
+}
 
 /**@brief Function for handling the Application's BLE Stack events.
  *
@@ -714,6 +755,8 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
             err_code = app_button_enable();
             m_advertising_mode = BLE_NO_ADVERTISING;
             m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
+            
+			checkStartBootloader(m_conn_handle);
             break;
         
         case BLE_GAP_EVT_AUTH_STATUS:
@@ -795,7 +838,7 @@ static void initButtons(void)
     static app_button_cfg_t buttons[] =
     {
         {BUTTON_A_PIN, APP_BUTTON_ACTIVE_HIGH, NRF_GPIO_PIN_NOPULL, button_event_handler},
-        {BUTTON_B_PIN,      APP_BUTTON_ACTIVE_HIGH, NRF_GPIO_PIN_NOPULL, button_event_handler}
+        {BUTTON_B_PIN, APP_BUTTON_ACTIVE_HIGH, NRF_GPIO_PIN_NOPULL, button_event_handler}
     };
 
     APP_BUTTON_INIT(buttons, sizeof(buttons) / sizeof(buttons[0]), BUTTON_DETECTION_DELAY, false);
